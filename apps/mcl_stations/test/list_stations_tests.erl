@@ -10,26 +10,12 @@
 
 setup() ->
     {ok, _} = application:ensure_all_started(barrel_docdb),
-    %% See station_read_model_tests:setup/0 for why wall-clock time is
-    %% mixed into the name: unique_integer/1 alone repeats across the
-    %% fresh VM `rebar3 eunit' starts per invocation and can reopen a
-    %% past run's leftover on-disk directory.
-    DbName = <<"mcl_stations_list_test_",
-              (integer_to_binary(erlang:system_time(microsecond)))/binary, "_",
-              (integer_to_binary(erlang:unique_integer([positive])))/binary>>,
-    Dir = filename:join(filename:basedir(user_cache, "mcl-stations-test"),
-                        binary_to_list(DbName)),
-    ok = filelib:ensure_path(Dir),
-    ok = mcl_om_read_model:ensure(DbName, Dir),
-    persistent_term:put(mcl_om_read_model_db, DbName),
+    Dir = read_model_fixture:open(),
     seed(),
-    {DbName, Dir}.
+    Dir.
 
-teardown({DbName, Dir}) ->
-    persistent_term:erase(mcl_om_read_model_db),
-    ok = barrel_docdb:delete_db(DbName),
-    _ = file:del_dir_r(Dir),
-    ok.
+teardown(Dir) ->
+    read_model_fixture:close(Dir).
 
 %% Four stations plus one deliberately geo-less node
 %% (`kind => daemon', the way a thin client's own self-announced

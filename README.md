@@ -41,9 +41,24 @@ is no longer listed, with no tombstone needed.
 
 **The read model** is a `barrel_docdb` database under `MCL_DATA_DIR`
 (`/var/lib/mcl-stations`), a cache rebuilt from the DHT snapshot on every boot.
-It has no volume on purpose.
+It has no volume on purpose. The service opens it itself in `start/1`
+(`station_read_model:open/1`), and points barrel's own system files at
+`MCL_DATA_DIR/barrel_docdb` rather than barrel's relative default.
 
 ## Running it
+
+⚠ **Building needs librocksdb 11.1.x.** The read model's rocksdb binding
+links the system RocksDB instead of compiling the copy it bundles (the
+`overrides` entry in `rebar.config`), and no distribution packages 11.1.x.
+Without it `rebar3 compile` stops at rocksdb's configure step with "Could not
+find RocksDB", on purpose. Build and test inside the team's build image, the
+one lint.yml and the Containerfile pin:
+
+    podman run --rm -v "$PWD:/w:Z" -w /w \
+        ghcr.io/macula-io/macula-ci-otp-rocksdb@sha256:da4ea316b91f4f29efc8036fa9d95a3b1f3efde8b85cb5997780f140e0f2f6d8 \
+        sh -c 'rebar3 lint && rebar3 eunit && rebar3 dialyzer'
+
+or install librocksdb 11.1.x and run the same commands directly:
 
     rebar3 compile
     rebar3 eunit
@@ -52,9 +67,9 @@ It has no volume on purpose.
 
     scripts/health.sh                      # against a running node
 
-Building the image needs a Rust toolchain, because macula ships a QUIC NIF and
-the alpine build compiles it from source rather than fetching one linked against
-a different libc.
+The image builds in `macula-ci-otp-rocksdb` and runs on
+`macula-pq-runtime-rocksdb`, both Debian trixie and pinned by digest: the
+release needs `librocksdb.so.11` at run time, which the runtime image carries.
 
     podman build -t mcl-stations -f Containerfile .
 
@@ -67,6 +82,8 @@ a different libc.
 | `MACULA_STATION_SEEDS` | required | Station hosts to dial, `host[:port]`, comma-separated. No default: naming a realm costs nothing, dialling a production station from every dev clone does. |
 | `MACULA_STATION_NODE_IDS` | required | The matching 64-hex station node ids, comma-separated, index-paired with the seeds. The dial is pinned (D5): mcl_om refuses to boot a pool with an unpinned seed. |
 | `MCL_DATA_DIR` | `/var/lib/mcl-stations` | Where the read model lives. A cache, rebuilt at boot. |
+| `MCL_SERVICE_NAME` | `mcl-stations` | Label on the boot claim the realm's operator sees. |
+| `MCL_BOX` | from the host | Label naming the box, also on the boot claim. Set it where you deploy. |
 | `MCL_HEALTH_PORT` | `8495` | Health endpoint. Host networking makes a collision a silent bind failure, so check the host before changing.  |
 | `MCL_NODE_NAME` | `mcl_stations` | Erlang node name. |
 | `MCL_NODE_HOST` | `127.0.0.1` | Erlang node host. |

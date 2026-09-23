@@ -1,39 +1,19 @@
 %% @doc Drives station_read_model against a real, throwaway barrel_docdb
-%% database -- no mesh, no mcl_om:boot/1. `mcl_om_read_model:ensure/2'
-%% is documented "services don't call this module directly" (that's
-%% `mcl_om:boot/1''s job in production), but it's the exact, idempotent
-%% mechanism boot/1 itself uses, and there is no lighter test seam: reading
-%% its source was how `station_read_model.erl' was written in the first
-%% place, so exercising it for real here is what actually verifies those
-%% API assumptions (put_doc's `<<"id">>' semantics, get_doc's `not_found',
-%% fold_docs excluding deleted docs by default) rather than just asserting
-%% against another guess.
+%% database opened by station_read_model:open/1 itself (read_model_fixture),
+%% no mesh and no mcl_om:boot/1. Exercising barrel for real is what verifies
+%% the API assumptions (put_doc's `<<"id">>' semantics, get_doc's `not_found',
+%% fold_docs excluding deleted docs by default) rather than a guess at them.
 -module(station_read_model_tests).
 
 -include_lib("eunit/include/eunit.hrl").
 
 setup() ->
     {ok, _} = application:ensure_all_started(barrel_docdb),
-    %% `erlang:unique_integer/1' is unique only within THIS VM, and
-    %% `rebar3 eunit' is a fresh VM per invocation -- an integer-only name
-    %% collides with a past run's leftover on-disk directory (never
-    %% cleaned up if that run crashed) and reopens ITS docs. Wall-clock
-    %% time makes the name unique across runs too.
-    DbName = <<"mcl_stations_test_",
-              (integer_to_binary(erlang:system_time(microsecond)))/binary, "_",
-              (integer_to_binary(erlang:unique_integer([positive])))/binary>>,
-    Dir = filename:join(filename:basedir(user_cache, "mcl-stations-test"),
-                        binary_to_list(DbName)),
-    ok = filelib:ensure_path(Dir),
-    ok = mcl_om_read_model:ensure(DbName, Dir),
-    persistent_term:put(mcl_om_read_model_db, DbName),
-    {DbName, Dir}.
+    Dir = read_model_fixture:open(),
+    Dir.
 
-teardown({DbName, Dir}) ->
-    persistent_term:erase(mcl_om_read_model_db),
-    ok = barrel_docdb:delete_db(DbName),
-    _ = file:del_dir_r(Dir),
-    ok.
+teardown(Dir) ->
+    read_model_fixture:close(Dir).
 
 node_id() -> crypto:strong_rand_bytes(32).
 
@@ -58,6 +38,8 @@ node_fields(Overrides) ->
 
 station_read_model_test_() ->
     {foreach, fun setup/0, fun teardown/1, [
+        fun open_keeps_barrels_own_files_under_the_data_dir/1,
+        fun open_again_reopens_rather_than_failing/1,
         fun upsert_node_record_creates_a_doc/1,
         fun upsert_node_record_omits_undefined_fields/1,
         fun upsert_node_record_derives_continent_from_country/1,
@@ -69,6 +51,30 @@ station_read_model_test_() ->
         fun upsert_node_record_captures_version_when_present/1,
         fun upsert_node_record_omits_an_unreported_version/1
     ]}.
+
+%% barrel keeps a system database recording where each database lives, under
+%% its `data_dir' app env, whose default is the RELATIVE "data/barrel_docdb":
+%% in the container, /app/data, outside the service's data dir. open/1 points
+%% it under the data dir before opening anything.
+%% barrel opens that system database once per VM, so an earlier test in this
+%% run may hold it open in its own directory: close it, and open the read
+%% model again, as a fresh node would.
+open_keeps_barrels_own_files_under_the_data_dir(Dir) ->
+    _ = barrel_docdb:close_db(<<"_barrel_system">>),
+    ok = barrel_docdb:close_db(station_read_model:db()),
+    ok = station_read_model:open(Dir),
+    Barrel = filename:join(Dir, "barrel_docdb"),
+    [?_assertEqual({ok, Barrel}, application:get_env(barrel_docdb, data_dir)),
+     ?_assert(filelib:is_dir(filename:join(Barrel, "_barrel_system"))),
+     ?_assert(filelib:is_dir(filename:join(Dir, "mcl_stations")))].
+
+%% A restart opens the same directory again; that must be the same database.
+open_again_reopens_rather_than_failing(Dir) ->
+    ok = station_read_model:upsert_node_record(node_fields(#{node_id => node_id(), capabilities => 0}),
+                                               later()),
+    ok = station_read_model:open(Dir),
+    {ok, Rows} = station_read_model:fold(fun(D, Acc) -> {ok, [D | Acc]} end, []),
+    ?_assertEqual(1, length(Rows)).
 
 upsert_node_record_creates_a_doc(_DbName) ->
     NodeId = node_id(),

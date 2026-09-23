@@ -20,21 +20,11 @@
 setup() ->
     ok = application:set_env(macula, crypto_profile, pq_hybrid),
     {ok, _} = application:ensure_all_started(barrel_docdb),
-    DbName = <<"mcl_stations_ingest_test_",
-              (integer_to_binary(erlang:system_time(microsecond)))/binary, "_",
-              (integer_to_binary(erlang:unique_integer([positive])))/binary>>,
-    Dir = filename:join(filename:basedir(user_cache, "mcl-stations-test"),
-                        binary_to_list(DbName)),
-    ok = filelib:ensure_path(Dir),
-    ok = mcl_om_read_model:ensure(DbName, Dir),
-    persistent_term:put(mcl_om_read_model_db, DbName),
-    {DbName, Dir}.
+    Dir = read_model_fixture:open(),
+    Dir.
 
-teardown({DbName, Dir}) ->
-    persistent_term:erase(mcl_om_read_model_db),
-    ok = barrel_docdb:delete_db(DbName),
-    _ = file:del_dir_r(Dir),
-    ok.
+teardown(Dir) ->
+    read_model_fixture:close(Dir).
 
 docs() ->
     {ok, Rows} = station_read_model:fold(fun(D, Acc) -> {ok, [D | Acc]} end, []),

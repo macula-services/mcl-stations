@@ -58,6 +58,11 @@ services:
       - MCL_COOKIE=mcl_stations
       # Host networking means a port already bound on this host fails SILENTLY.
       - MCL_HEALTH_PORT=8495
+      # Labels on the claim this service sends the realm at boot, which the
+      # realm's operator sees on the pending row: what is asking, and from
+      # which box. MCL_BOX comes from the host that deploys it.
+      - MCL_SERVICE_NAME=mcl-stations
+      - MCL_BOX=${MCL_BOX:-}
 
 # The identity volume, NAMED HERE rather than left to the project name, so a
 # `docker compose -p` with a different name reuses the same key instead of

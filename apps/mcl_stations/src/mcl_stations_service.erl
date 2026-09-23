@@ -10,14 +10,17 @@
 -behaviour(mcl_om_service).
 
 -export([info/0, start/1, stop/1, health/0, capabilities/0, identity_spec/0]).
--export([read_model_id/0, data_dir/0]).
 
 info() ->
     #{name => <<"mcl-stations">>,
       version => <<"0.1.0">>,
       description => <<"Live, filterable directory of macula stations: geo, health and direct-dial address, so clients never hand-maintain a station list">>}.
 
-start(_Opts) -> mcl_stations_sup:start_link().
+%% The read model is this service's own: opened here, before the supervisor
+%% starts the worker that writes it.
+start(_Opts) ->
+    ok = station_read_model:open(data_dir()),
+    mcl_stations_sup:start_link().
 
 stop(_State) -> ok.
 
@@ -56,11 +59,7 @@ identity_spec() ->
       resources => [],
       ttl_days => 30}.
 
-%% The barrel_docdb read model ingest_node_records keeps and list_stations
-%% reads. mcl_om:boot/1 opens it before start/1 because both callbacks are
-%% exported. It is a cache of what the DHT says, rebuilt from the snapshot on
-%% every boot, so losing it loses nothing.
-read_model_id() -> <<"mcl_stations">>.
-
+%% Where the read model lives. It is a cache of what the DHT says, rebuilt
+%% from the snapshot on every boot, so losing it loses nothing.
 data_dir() ->
     os:getenv("MCL_DATA_DIR", "/var/lib/mcl-stations").
