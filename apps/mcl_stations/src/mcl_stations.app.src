@@ -1,14 +1,19 @@
 {application, mcl_stations, [
     {description, "Live, filterable directory of macula stations: geo, health and direct-dial address, so clients never hand-maintain a station list"},
     {vsn, "0.1.0"},
-    {registered, [mcl_stations_sup]},
+    {registered, [mcl_stations_sup, ingest_node_records]},
     {mod, {mcl_stations_app, []}},
     {applications, [
         kernel,
         stdlib,
         crypto,
         %% Mesh SDK, realm identity, capabilities, health.
-        mcl_om
+        mcl_om,
+        %% Called directly, not only through mcl_om: the DHT record reads and
+        %% subscriptions, and the read model. Both come in with mcl_om;
+        %% listing them is what puts them in dialyzer's view.
+        macula,
+        barrel_docdb
     ]},
     {env, []},
     {modules, []},

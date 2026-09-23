@@ -58,11 +58,16 @@ info_version_matches_the_application_test() ->
 health_is_green_test() ->
     ?assertEqual(ok, ?SERVICE:health()).
 
-%% An empty list is the correct answer for a service that does nothing yet. The
-%% assertion is here so that adding a capability breaks a test and makes someone
-%% write down what the service can now actually do.
-announces_no_capability_yet_test() ->
-    ?assertEqual([], ?SERVICE:capabilities()).
+%% The one promise this service makes: the station directory, answered by
+%% the list_stations desk. The wire name becomes `Org/list_stations', the
+%% org being deploy config. Open, because every row in the reply is public
+%% already: stations broadcast these records to the whole DHT.
+announces_the_station_directory_test() ->
+    ?assertEqual([#{name => <<"list_stations">>,
+                    version => 1,
+                    handler => {list_stations, []},
+                    auth => open}],
+                 ?SERVICE:capabilities()).
 
 identity_spec_has_the_shape_mcl_om_expects_test() ->
     #{scope := Scope, actions := Actions,
@@ -72,22 +77,21 @@ identity_spec_has_the_shape_mcl_om_expects_test() ->
     ?assert(is_list(Resources)),
     ?assert(is_integer(Ttl) andalso Ttl > 0).
 
-%% A resource this service is not authorised for is a publish the realm would
-%% refuse once UCAN delegation lands. Asking for nothing and claiming nothing
-%% must stay in step, so the two are asserted together.
-authority_matches_what_is_announced_test() ->
+%% Serving an RPC needs no realm-granted topic, and the records it reads
+%% live in the DHT's own realm, which no identity_spec governs. So the
+%% capability above asks the realm for nothing.
+authority_asks_for_no_pubsub_topics_test() ->
     #{actions := Actions, resources := Resources} = ?SERVICE:identity_spec(),
-    ?assertEqual([], ?SERVICE:capabilities()),
     ?assertEqual([], Actions),
     ?assertEqual([], Resources).
 
-%% The supervisor starts and stops cleanly on its own, without mcl_om. It has
-%% no children as generated; this asserts the tree is startable, not that it does
-%% any work.
-supervisor_starts_and_stops_test() ->
+%% The supervisor runs the one ingest worker. It is started here without
+%% mcl_om, so the worker finds no mesh and waits to retry: startable, idle.
+supervisor_runs_the_ingest_worker_test() ->
     {ok, Pid} = mcl_stations_sup:start_link(),
     ?assert(is_process_alive(Pid)),
-    ?assertEqual([], supervisor:which_children(Pid)),
+    ?assertMatch([{ingest_node_records, _, worker, [ingest_node_records]}],
+                 supervisor:which_children(Pid)),
     unlink(Pid),
     exit(Pid, shutdown).
 

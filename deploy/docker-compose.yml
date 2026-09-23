@@ -57,7 +57,7 @@ services:
       - MCL_NODE_HOST=127.0.0.1
       - MCL_COOKIE=mcl_stations
       # Host networking means a port already bound on this host fails SILENTLY.
-      - MCL_HEALTH_PORT=8484
+      - MCL_HEALTH_PORT=8495
 
 # The identity volume, NAMED HERE rather than left to the project name, so a
 # `docker compose -p` with a different name reuses the same key instead of

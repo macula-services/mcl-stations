@@ -2,21 +2,53 @@
 
 **Live, filterable directory of macula stations: geo, health and direct-dial address, so clients never hand-maintain a station list**
 
-## Status: scaffold
+## Status: serving list_stations
 
-The service boots, joins the mesh and answers `/health` on 8484. It
-does nothing else yet.
+The service boots, joins the mesh and answers `/health` on 8495. It keeps a
+directory of every macula station and serves it as one RPC.
 
-It announces no capability and asks the realm for no authority, because it can do
-nothing yet. Both lists grow when the thing they name exists. Advertising a
-capability before it exists puts a lie on the mesh where another service can find
-it and call it.
+**What it reads.** Three DHT record types, the ones every macula-station
+already broadcasts: `node_record` (0x01: hostname, city, country, lat/lng,
+kind, and the build the station reports), `station_endpoint` (0x12: QUIC port
+and the literal addresses to dial), and the `tombstone` (0x0C) a station
+publishes when it shuts down gracefully. A snapshot at boot
+(`macula:find_records_by_type/2`), then live subscriptions
+(`macula:subscribe_records/3`). The macula facade verifies every record under
+the node's crypto profile and drops what fails, so nothing unverified reaches
+the read model. The two records of one station are joined on the signer's key
+id, and a tombstone that withdraws a node_record removes that station at once.
+
+**What it serves.** `mcl-stations/list_stations`, open to any caller:
+
+| Argument | Effect |
+|----------|--------|
+| none, or not a map | every known station |
+| `continent`, `country`, `city` | exact match; continent is derived from the ISO country code |
+| `near => #{lat, lng, limit}` | nearest first by great-circle distance, `limit` optional; stations without coordinates are left out |
+
+The reply is `#{stations => [Row]}`. Text fields (`hostname`, `city`,
+`country`, `continent`, `kind`, `version`, each `host_advertised` entry) go out
+as CBOR text, so non-BEAM callers read strings, not bytes. `node_id` is the
+station's 32-byte key id and stays bytes.
+
+It asks the realm for no authority: the records it reads live in the DHT's own
+realm, and serving an RPC needs no realm-granted topic.
+
+**Stations that go dark.** Each row keeps the expiry of the records it came
+from. A live station refreshes them well before they lapse; one that crashed
+or lost its link stops refreshing, and once all its records have expired it
+is no longer listed, with no tombstone needed.
+
+**The read model** is a `barrel_docdb` database under `MCL_DATA_DIR`
+(`/var/lib/mcl-stations`), a cache rebuilt from the DHT snapshot on every boot.
+It has no volume on purpose.
 
 ## Running it
 
     rebar3 compile
     rebar3 eunit
     rebar3 lint
+    rebar3 dialyzer
 
     scripts/health.sh                      # against a running node
 
@@ -34,7 +66,8 @@ a different libc.
 | `MCL_REALM_KEY` | required | The realm's public signing key, hex encoded: the **trust anchor**, not an identifier. Every org-namespaced advertisement is verified against it, so without it nothing resolves, the boot claim never reaches the realm, and the service stays green while unreachable. Public material, not a secret. |
 | `MACULA_STATION_SEEDS` | required | Station hosts to dial, `host[:port]`, comma-separated. No default: naming a realm costs nothing, dialling a production station from every dev clone does. |
 | `MACULA_STATION_NODE_IDS` | required | The matching 64-hex station node ids, comma-separated, index-paired with the seeds. The dial is pinned (D5): mcl_om refuses to boot a pool with an unpinned seed. |
-| `MCL_HEALTH_PORT` | `8484` | Health endpoint. Host networking makes a collision a silent bind failure, so check the host before changing.  |
+| `MCL_DATA_DIR` | `/var/lib/mcl-stations` | Where the read model lives. A cache, rebuilt at boot. |
+| `MCL_HEALTH_PORT` | `8495` | Health endpoint. Host networking makes a collision a silent bind failure, so check the host before changing.  |
 | `MCL_NODE_NAME` | `mcl_stations` | Erlang node name. |
 | `MCL_NODE_HOST` | `127.0.0.1` | Erlang node host. |
 | `MCL_COOKIE` | `mcl_stations` | Erlang cookie. |

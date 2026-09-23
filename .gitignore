@@ -2,3 +2,7 @@ _build/
 rebar.lock
 *.beam
 erl_crash.dump
+
+# barrel_docdb's system databases, written to the working directory whenever
+# the eunit suite starts barrel_docdb for the read-model tests.
+/data/

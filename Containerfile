@@ -2,10 +2,11 @@
 #
 # Live, filterable directory of macula stations: geo, health and direct-dial address, so clients never hand-maintain a station list
 #
-# NO DATA VOLUME AS GENERATED. The scaffold writes nothing, and a named volume
-# for data that does not exist is a promise the image cannot keep. Add one
-# together with the code that writes it, and declare it here and in the compose
-# file at the same time.
+# NO DATA VOLUME, ON PURPOSE. The one thing this service writes is its
+# barrel_docdb read model under MCL_DATA_DIR (/var/lib/mcl-stations), and that
+# is a cache of what the DHT says: every boot replays the DHT snapshot into it.
+# A volume would only carry stale rows from before a restart, so the model
+# lives and dies with the container.
 
 # ⚠ THE RUNTIME IS PINNED IN TWO PLACES AND THEY MUST AGREE: here and `lint.yml'
 # beside it. A generated service that builds on one release and tests on another
@@ -86,11 +87,11 @@ ENV RELX_REPLACE_OS_VARS=true
 ENV MCL_NODE_NAME=mcl_stations
 ENV MCL_NODE_HOST=127.0.0.1
 ENV MCL_COOKIE=mcl_stations
-ENV MCL_HEALTH_PORT=8484
+ENV MCL_HEALTH_PORT=8495
 
 VOLUME ["/etc/mcl/secrets"]
 
-EXPOSE 8484
+EXPOSE 8495
 HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
     CMD curl -fsS "http://127.0.0.1:${MCL_HEALTH_PORT}/health" || exit 1
 

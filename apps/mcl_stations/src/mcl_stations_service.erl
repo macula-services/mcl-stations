@@ -4,18 +4,13 @@
 %% live node, so a service that forgets one dies with `undef' where nobody is
 %% watching. The `-behaviour' attribute below is what turns that into a compile
 %% error instead, and the generated test suite guards the attribute itself.
-%%
-%% IT ANNOUNCES NOTHING AND ASKS FOR NOTHING, on purpose. A service that does
-%% nothing yet has no capability to offer and needs no authority from the realm.
-%% Advertising a capability before it exists puts a lie on the mesh that another
-%% service can find and call. Both lists grow when the thing they name exists,
-%% and a generated test fails when they change, so growing them is a deliberate
-%% act rather than a comment someone forgot.
+
 -module(mcl_stations_service).
 
 -behaviour(mcl_om_service).
 
 -export([info/0, start/1, stop/1, health/0, capabilities/0, identity_spec/0]).
+-export([read_model_id/0, data_dir/0]).
 
 info() ->
     #{name => <<"mcl-stations">>,
@@ -33,11 +28,24 @@ health() -> ok.
 
 %% WHAT THIS SERVICE ANNOUNCES IT CAN DO. Other services find this one by these
 %% names, so each entry is a promise that something answers.
-capabilities() -> [].
+%%
+%% The station directory, answered by the list_stations desk. On the wire the
+%% procedure is `Org/list_stations', the org (and the realm it lives in) being
+%% deploy config, not code; mcl_om refuses to advertise under an unset org.
+%% Open, because every row in the reply is public already: stations
+%% broadcast these records to the whole DHT.
+capabilities() ->
+    [#{name => <<"list_stations">>,
+       version => 1,
+       handler => {list_stations, []},
+       auth => open}].
 
 %% THE AUTHORITY THIS SERVICE ASKS THE REALM FOR, and deliberately nothing more.
 %% Ask for exactly the topics you publish and subscribe to. Popped, an attacker
 %% gains precisely this and no more, which is the whole point of listing it.
+%%
+%% Nothing: the records it ingests live in the DHT's own realm, which no
+%% identity_spec governs, and serving an RPC needs no realm-granted topic.
 %%
 %% The scope is claimed now because it is the namespace every later resource
 %% hangs under, and a scope costs nothing while a rename costs every deployed
@@ -47,3 +55,12 @@ identity_spec() ->
       actions => [],
       resources => [],
       ttl_days => 30}.
+
+%% The barrel_docdb read model ingest_node_records keeps and list_stations
+%% reads. mcl_om:boot/1 opens it before start/1 because both callbacks are
+%% exported. It is a cache of what the DHT says, rebuilt from the snapshot on
+%% every boot, so losing it loses nothing.
+read_model_id() -> <<"mcl_stations">>.
+
+data_dir() ->
+    os:getenv("MCL_DATA_DIR", "/var/lib/mcl-stations").
