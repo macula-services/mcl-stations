@@ -120,21 +120,28 @@ supervisor_runs_the_ingest_worker_test() ->
 %% Hub moved the floating `erlang:28-alpine' on 2026-09-22 a service generated
 %% from this template shipped OTP 28.5 and its guard stayed green. It compares
 %% the full release now: the builder's (which must also carry a digest, so a
-%% re-pushed tag cannot change what builds), lint's image and the release its
+%% re-pushed tag cannot change what builds), the release lint's
 %% toolchain step insists on, .tool-versions, and this VM.
 the_runtime_agrees_between_the_image_the_ci_and_this_vm_test() ->
     Image = pinned("Containerfile",
                    "^FROM docker\\.io/(?:hexpm/)?erlang:([0-9]+\\.[0-9]+\\.[0-9]+)"
                    "-alpine[^@\\s]*@sha256:[0-9a-f]{64} AS builder$"),
-    CiImage = pinned(".github/workflows/lint.yml",
-                     "^\\s+image: docker\\.io/(?:hexpm/)?erlang:([0-9]+\\.[0-9]+\\.[0-9]+)"
-                     "[^@\\s]*@sha256:[0-9a-f]{64}$"),
     CiCheck = pinned(".github/workflows/lint.yml",
                      "\\{<<\"([0-9]+\\.[0-9]+\\.[0-9]+)\">>, true\\} -> halt\\(0\\);"),
     Tools = pinned(".tool-versions", "^erlang ([0-9]+\\.[0-9]+\\.[0-9]+)$"),
     %% Sorted and deduplicated, so a failure prints every version rather than
     %% the first pair that happened to be compared.
-    ?assertEqual([Image], lists:usort([Image, CiImage, CiCheck, Tools, running_otp()])).
+    ?assertEqual([Image], lists:usort([Image, CiCheck, Tools, running_otp()])).
+
+%% Lint runs on the team's macula-ci-otp image. Its tag carries a build date,
+%% not an OTP version, so the release it holds is asserted by the toolchain
+%% step above; what this pins is that the image is named by digest, so a
+%% re-pushed tag cannot change what CI tests on.
+ci_runs_on_the_digest_pinned_team_image_test() ->
+    ?assertMatch(<<_/binary>>,
+                 pinned(".github/workflows/lint.yml",
+                        "^\\s+image: ghcr\\.io/macula-io/macula-ci-otp:([0-9]{8}-[0-9]{4})"
+                        "@sha256:[0-9a-f]{64}$")).
 
 %% The full release, 28.4.3 and not 28: `otp_release' names only the major.
 running_otp() ->
