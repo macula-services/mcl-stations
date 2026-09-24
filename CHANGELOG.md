@@ -29,6 +29,9 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
   image build run in `macula-ci-otp-rocksdb`, and the image runs on
   `macula-pq-runtime-rocksdb`, both pinned by digest; the Alpine builder and
   runtime are gone.
+- mcl_om `~> 0.28` (macula 12.2): the service answers `mcl-stations/info` with
+  no code of its own, its publishes can no longer kill it, and /health counts
+  failed publishes.
 - The boot claim is labelled: the compose file sets `MCL_SERVICE_NAME` and
   passes `MCL_BOX` through from the host.
 
