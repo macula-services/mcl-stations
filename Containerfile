@@ -49,6 +49,10 @@ FROM ghcr.io/macula-io/macula-pq-runtime-rocksdb@sha256:ecb492cff20a84e88b197cf7
 # private by accident failed its first pull with a bare "unauthorized", which
 # names nothing and sends you looking in the wrong place.
 LABEL org.opencontainers.image.source="https://github.com/macula-services/mcl-stations"
+# The commit this image was built from (build-push passes github.sha), so a
+# digest pinned on a box traces back to a commit.
+ARG REVISION=unknown
+LABEL org.opencontainers.image.revision="${REVISION}"
 # The runtime image carries everything the release loads: librocksdb.so.11,
 # the codec libraries it links, OpenSSL 3.5, ncurses, libstdc++, and curl for
 # the healthcheck below.
