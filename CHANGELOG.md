@@ -7,6 +7,14 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+### Changed
+
+- Floors raised to macula 12.5.1 and mcl_om 0.29.1. macula 12.5.1 fixes
+  admission expiry (#37): before it, a provider that had run for about two
+  hours stopped admitting callers. mcl_om 0.29.1 sends a capability's ADVERTISE
+  only to its serving station. `dependency_floors_tests` checks both down to
+  the patch.
+
 ### Added
 
 - `mcl-stations/list_stations`, the station directory, ported from
