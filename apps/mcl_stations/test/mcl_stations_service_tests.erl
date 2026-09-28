@@ -169,6 +169,18 @@ lint_runs_in_the_builder_image_test() ->
     Builder = pinned("Containerfile", "^FROM (\\S+) AS builder$"),
     ?assertEqual(Builder, pinned(".github/workflows/lint.yml", "^\\s+image: (\\S+)$")).
 
+%% EVERY IMAGE IS SIGNED BY DIGEST (M6): an attest job after the build calls
+%% macula-ci-images' attest-image.yml, pinned by full commit sha, with the
+%% digest the build pushed. The fleet refuses an unsigned digest.
+the_image_is_signed_by_digest_test() ->
+    {ok, Body} = file:read_file(alongside(".github/workflows/build-push.yml")),
+    [?assertMatch({match, _}, re:run(Body, P, [multiline])) || P <- [
+        "^  attest:\\n    needs: build-and-push$",
+        "^    uses: macula-io/macula-ci-images/\\.github/workflows/attest-image\\.yml@[0-9a-f]{40}$",
+        "^      image: ghcr\\.io/macula-services/mcl-stations$",
+        "^      digest: \\$\\{\\{ needs\\.build-and-push\\.outputs\\.digest \\}\\}$",
+        "^      digest: \\$\\{\\{ steps\\.push\\.outputs\\.digest \\}\\}$"]].
+
 %% ONLY MAIN FEEDS :latest AND ONLY A v* TAG FEEDS THE ARCHIVE. build-push can
 %% be run by hand, and from a branch every ref that was not a v* tag fell
 %% through to :latest. Any other ref is refused, naming it.
