@@ -20,6 +20,12 @@
         %% application:get_env(mcl_om, realm); exporting MCL_REALM in the
         %% shell and expecting that to be enough has cost a sibling service an
         %% hour, because nothing translates between the two by itself.
+        %% THIS SERVICE EXISTS TO ANSWER ON THE MESH, so it does not boot
+        %% without MCL_REALM, MCL_REALM_KEY, MACULA_STATION_SEEDS and
+        %% MACULA_STATION_NODE_IDS: mcl_om refuses, naming every one missing.
+        %% Without this line an unset seed list boots a green service with no
+        %% mesh at all, which answers /health and nothing else, forever.
+        {mesh,              required},
         {realm,             <<"${MCL_REALM}">>},
         %% ONE ORG PER SERVICE, NAMED AFTER THE REPOSITORY: the `Org' in every
         %% procedure it offers (`Org/Name'), and the org the realm's grant

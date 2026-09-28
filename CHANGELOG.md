@@ -9,6 +9,18 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ### Changed
 
+- **macula 13.0.1 and mcl_om 0.33.1**, checked down to the patch by the
+  dependency floor test. The release sets `{mesh, required}`: the service
+  refuses to boot without `MCL_REALM`, `MCL_REALM_KEY`,
+  `MACULA_STATION_SEEDS` and `MACULA_STATION_NODE_IDS`, naming each missing
+  one, instead of running green with no mesh.
+- Built on the current rocksdb image pair, 20260928-1642, republished with
+  every download checked against a pinned checksum; the lint job runs in
+  exactly the builder image, which a test now checks.
+- build-push: only `main` publishes `:latest` and only a `v*` tag publishes a
+  version; a hand-run from any other ref is refused.
+- A unit test that the `-behaviour(mcl_om_service)` attribute is present.
+
 - Floors raised to macula 12.5.1 and mcl_om 0.29.1. macula 12.5.1 fixes
   admission expiry (#37): before it, a provider that had run for about two
   hours stopped admitting callers. mcl_om 0.29.1 sends a capability's ADVERTISE
