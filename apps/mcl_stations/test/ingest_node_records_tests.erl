@@ -125,3 +125,22 @@ a_tombstone_withdrawing_an_endpoint_leaves_the_station_listed(_) ->
     ok = ingest({tombstone, verified(macula_record:tombstone(Endpoint, moved), Key)}),
     [Doc] = docs(),
     ?_assertEqual(macula_node_keys:key_id(Key), maps:get(<<"node_id">>, Doc)).
+
+%%% THE POOL CAN RESTART UNDER A NEW PID (mcl_om_sup restarts it, permanent),
+%%% and every record subscription died with the old one. The worker notices,
+%%% drops what it held and connects again, instead of going blind for good.
+
+a_pool_going_down_drops_the_subscriptions_and_reconnects_test() ->
+    Pool = spawn(fun() -> receive stop -> ok end end),
+    Mon = erlang:monitor(process, Pool),
+    State = #{pool => Pool, mon => Mon},
+    {noreply, After} = ingest_node_records:handle_info({'DOWN', Mon, process, Pool, killed}, State),
+    ?assertEqual(#{}, After),
+    ?assertEqual(connect, receive connect -> connect after 100 -> nothing end).
+
+subscribed_reports_whether_a_pool_is_held_test() ->
+    ?assertEqual({reply, false, #{}}, ingest_node_records:handle_call(subscribed, from, #{})),
+    ?assertMatch({reply, true, _}, ingest_node_records:handle_call(subscribed, from, #{pool => self()})).
+
+subscribed_is_false_when_the_worker_is_not_running_test() ->
+    ?assertEqual(false, ingest_node_records:subscribed()).

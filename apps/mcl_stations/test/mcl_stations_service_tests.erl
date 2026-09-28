@@ -62,8 +62,16 @@ info_version_matches_the_application_test() ->
     #{version := Reported} = ?SERVICE:info(),
     ?assertEqual(list_to_binary(Vsn), Reported).
 
-health_is_green_test() ->
-    ?assertEqual(ok, ?SERVICE:health()).
+%% HEALTH SAYS WHETHER THE DIRECTORY IS BEING FED. A worker that lost its
+%% record subscriptions serves frozen rows, then none, while a scaffold
+%% `health() -> ok' stayed green throughout (Fable, 2026-09-28).
+health_is_green_while_the_records_are_subscribed_test() ->
+    ?assertEqual(ok, ?SERVICE:health_of(true)).
+
+health_is_degraded_without_the_record_subscriptions_test() ->
+    ?assertEqual({degraded, not_subscribed_to_records}, ?SERVICE:health_of(false)),
+    %% no ingest worker running here at all
+    ?assertEqual({degraded, not_subscribed_to_records}, ?SERVICE:health()).
 
 %% The one promise this service makes: the station directory, answered by
 %% the list_stations desk. The wire name becomes `Org/list_stations', the
