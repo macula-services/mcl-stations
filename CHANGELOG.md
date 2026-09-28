@@ -5,10 +5,14 @@ All notable changes to this project are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.1.0] - 2026-09-28
 
 ### Changed
 
+- **The directory says when it is not being fed.** The ingest worker monitors the mesh pool it
+  subscribed through and, when the pool restarts under a new pid, drops it and resubscribes,
+  snapshot first. `/health` is `degraded` (`not_subscribed_to_records`) while no subscription is
+  held; the scaffold's `health() -> ok` stayed green while `list_stations` served frozen rows.
 - **macula 13.0.1 and mcl_om 0.33.1**, checked down to the patch by the
   dependency floor test. The release sets `{mesh, required}`: the service
   refuses to boot without `MCL_REALM`, `MCL_REALM_KEY`,
@@ -60,9 +64,7 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - `mcl_stations_service`, the six-callback `mcl_om_service` contract.
 - Unit tests asserting the contract's shape, including that the mesh-facing name
   and the reported version match the application's own.
-- `Containerfile` building an alpine image, with macula's QUIC NIF compiled from
-  source rather than fetched against a foreign libc.
 - `deploy/docker-compose.yml`, the service's own run contract.
-- CI: `lint-and-test` on every push and pull request, `build-and-push` to
-  the registry on `main` and on `v*` tags, publishing both `:latest` and the semver
-  tag.
+- CI: `lint-and-test` on every push and pull request; `build-and-push` to the
+  registry, where `main` publishes `:latest` and a `v*` tag publishes that
+  version only.
