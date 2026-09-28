@@ -9,6 +9,9 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ### Changed
 
+- **Every pushed image is signed by digest** (keyless, SBOM and provenance attested) by an
+  attest job after the build, calling macula-ci-images' `attest-image.yml` pinned by commit,
+  as mcl-echo does. The fleet refuses an unsigned digest.
 - **The directory says when it is not being fed.** The ingest worker monitors the mesh pool it
   subscribed through and, when the pool restarts under a new pid, drops it and resubscribes,
   snapshot first. `/health` is `degraded` (`not_subscribed_to_records`) while no subscription is
