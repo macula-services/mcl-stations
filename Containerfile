@@ -1,6 +1,6 @@
 # mcl-stations
 #
-# Live, filterable directory of macula stations: geo, health and direct-dial address, so clients never hand-maintain a station list
+# Live, filterable directory of macula stations: geo, liveness and direct-dial address, so clients never hand-maintain a station list
 #
 # NO DATA VOLUME, ON PURPOSE. The one thing this service writes is its
 # barrel_docdb read model under MCL_DATA_DIR (/var/lib/mcl-stations), and that

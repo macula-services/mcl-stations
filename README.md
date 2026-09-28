@@ -1,6 +1,6 @@
 # mcl-stations
 
-**Live, filterable directory of macula stations: geo, health and direct-dial address, so clients never hand-maintain a station list**
+**Live, filterable directory of macula stations: geo, liveness and direct-dial address, so clients never hand-maintain a station list**
 
 ## Status: serving list_stations
 

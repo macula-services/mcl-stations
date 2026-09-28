@@ -16,7 +16,7 @@
 info() ->
     #{name => <<"mcl-stations">>,
       version => <<"0.1.0">>,
-      description => <<"Live, filterable directory of macula stations: geo, health and direct-dial address, so clients never hand-maintain a station list">>}.
+      description => <<"Live, filterable directory of macula stations: geo, liveness and direct-dial address, so clients never hand-maintain a station list">>}.
 
 %% The read model is this service's own: opened here, before the supervisor
 %% starts the worker that writes it.

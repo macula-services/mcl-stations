@@ -1,5 +1,5 @@
 {application, mcl_stations, [
-    {description, "Live, filterable directory of macula stations: geo, health and direct-dial address, so clients never hand-maintain a station list"},
+    {description, "Live, filterable directory of macula stations: geo, liveness and direct-dial address, so clients never hand-maintain a station list"},
     {vsn, "0.1.0"},
     {registered, [mcl_stations_sup, ingest_node_records]},
     {mod, {mcl_stations_app, []}},
