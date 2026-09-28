@@ -13,6 +13,13 @@
 %% this process's init path, so a single inline attempt at boot can race it
 %% and lose.
 %%
+%% THE POOL CAN RESTART UNDER A NEW PID (mcl_om_sup restarts it as
+%% permanent), and every record subscription dies with the old one. The
+%% worker monitors the pool it subscribed through; when it goes down it
+%% drops that pool and connects again, snapshot first. subscribed/0 tells
+%% the service's health whether the directory is being fed, so a worker
+%% that lost its subscriptions is degraded, never silently green.
+%%
 %% No tombstone snapshot at boot: a tombstone occupies its withdrawn
 %% record's own DHT slot, so a station withdrawn before this service started
 %% was never in the node_record snapshot to begin with.
@@ -30,7 +37,7 @@
 
 -behaviour(gen_server).
 
--export([start_link/0]).
+-export([start_link/0, subscribed/0]).
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2]).
 
 -define(TYPE_NODE_RECORD, 16#01).
@@ -45,6 +52,15 @@ init([]) ->
     self() ! connect,
     {ok, #{}}.
 
+%% @doc Whether the worker holds its record subscriptions through a live
+%% pool; false when it is between pools or not running at all.
+-spec subscribed() -> boolean().
+subscribed() ->
+    try gen_server:call(?MODULE, subscribed, 5000)
+    catch exit:{noproc, _} -> false
+    end.
+
+handle_call(subscribed, _From, State) -> {reply, is_map_key(pool, State), State};
 handle_call(_Msg, _From, State) -> {reply, {error, unknown_call}, State}.
 handle_cast(_Msg, State) -> {noreply, State}.
 
@@ -62,6 +78,11 @@ handle_info({station_endpoint, Record}, State) ->
 handle_info({tombstone, Record}, State) ->
     ok = retire_if_node_record(macula_record:read_tombstone(Record), macula_record:key_id(Record)),
     {noreply, State};
+handle_info({'DOWN', Mon, process, Pool, Reason}, #{mon := Mon, pool := Pool}) ->
+    logger:warning("ingest_node_records: the mesh pool went down (~0p); "
+                   "resubscribing to the station records", [Reason]),
+    self() ! connect,
+    {noreply, #{}};
 handle_info(_Msg, State) ->
     {noreply, State}.
 
@@ -77,7 +98,7 @@ try_connect({ok, Pool, _Realm}, State) ->
                                        fun(R) -> Self ! {station_endpoint, R} end),
     {ok, _} = macula:subscribe_records(Pool, ?TYPE_TOMBSTONE,
                                        fun(R) -> Self ! {tombstone, R} end),
-    State#{pool => Pool};
+    State#{pool => Pool, mon => erlang:monitor(process, Pool)};
 try_connect(_NoMesh, State) ->
     erlang:send_after(?RETRY_MS, self(), connect),
     State.
