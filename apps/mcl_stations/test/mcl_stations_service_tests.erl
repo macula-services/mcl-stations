@@ -30,6 +30,13 @@ exports_every_required_callback_test() ->
                     not erlang:function_exported(?SERVICE, N, A)],
     ?assertEqual([], Missing).
 
+%% THE ATTRIBUTE ITSELF. Dropped to silence a warning, it would leave compile
+%% and the export check above green, and the next callback mcl_om requires
+%% would be an `undef' at boot instead of a compile error.
+declares_the_mcl_om_service_behaviour_test() ->
+    Attrs = ?SERVICE:module_info(attributes),
+    ?assert(lists:member(mcl_om_service, proplists:get_value(behaviour, Attrs, []))).
+
 info_carries_the_three_keys_test() ->
     #{name := Name, version := Vsn, description := Desc} = ?SERVICE:info(),
     ?assert(is_binary(Name)),
@@ -147,6 +154,23 @@ images_are_the_digest_pinned_rocksdb_pair_test() ->
     ?assertMatch(<<_/binary>>,
                  pinned(".github/workflows/lint.yml",
                         "^\\s+image: (ghcr\\.io/macula-io/macula-ci-otp-rocksdb)" ++ Digest ++ "$")).
+
+%% ONE BUILD IMAGE: the lint job runs in exactly the image the release is built
+%% in, by digest, so CI checks what ships.
+lint_runs_in_the_builder_image_test() ->
+    Builder = pinned("Containerfile", "^FROM (\\S+) AS builder$"),
+    ?assertEqual(Builder, pinned(".github/workflows/lint.yml", "^\\s+image: (\\S+)$")).
+
+%% ONLY MAIN FEEDS :latest AND ONLY A v* TAG FEEDS THE ARCHIVE. build-push can
+%% be run by hand, and from a branch every ref that was not a v* tag fell
+%% through to :latest. Any other ref is refused, naming it.
+only_main_and_release_tags_publish_test() ->
+    {ok, Body} = file:read_file(alongside(".github/workflows/build-push.yml")),
+    ?assertMatch({match, _}, re:run(Body, "^\\s+refs/heads/main\\) echo \"tags=\\S+:latest\"",
+                                    [multiline])),
+    ?assertMatch({match, _}, re:run(Body, "^\\s+\\*\\) echo \"::error::.*\\$GITHUB_REF.*exit 1",
+                                    [multiline])),
+    ?assertEqual(nomatch, binary:match(Body, <<"else">>)).
 
 %% The full release, 28.4.3 and not 28: `otp_release' names only the major.
 running_otp() ->
