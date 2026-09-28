@@ -55,7 +55,7 @@ find RocksDB", on purpose. Build and test inside the team's build image, the
 one lint.yml and the Containerfile pin:
 
     podman run --rm -v "$PWD:/w:Z" -w /w \
-        ghcr.io/macula-io/macula-ci-otp-rocksdb@sha256:da4ea316b91f4f29efc8036fa9d95a3b1f3efde8b85cb5997780f140e0f2f6d8 \
+        ghcr.io/macula-io/macula-ci-otp-rocksdb@sha256:57e3929c45976fbc1d216bddfde831cad7b7e276d8197b099dfbac0cd731a8c9 \
         sh -c 'rebar3 lint && rebar3 eunit && rebar3 dialyzer'
 
 or install librocksdb 11.1.x and run the same commands directly:

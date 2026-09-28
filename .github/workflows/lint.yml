@@ -28,7 +28,7 @@ jobs:
       # macula-ci-otp plus librocksdb 11.1.2 and the codec dev libs, for the
       # rocksdb override in rebar.config: the same build image as the
       # Containerfile's builder.
-      image: ghcr.io/macula-io/macula-ci-otp-rocksdb@sha256:da4ea316b91f4f29efc8036fa9d95a3b1f3efde8b85cb5997780f140e0f2f6d8
+      image: ghcr.io/macula-io/macula-ci-otp-rocksdb@sha256:57e3929c45976fbc1d216bddfde831cad7b7e276d8197b099dfbac0cd731a8c9
     steps:
       - uses: actions/checkout@v4
       - name: Verify the toolchain is the one we think it is
