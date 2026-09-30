@@ -192,8 +192,9 @@ latest_moves_only_after_attest_on_a_version_tag_test() ->
     Has(<<"exit 1 ;;">>),
     Has(<<"\n  promote-latest:\n    needs: [build-and-push, attest]\n"
           "    if: startsWith(github.ref, 'refs/tags/v')">>),
-    Has(<<"imagetools create --tag \"$IMAGE:latest\" \"$IMAGE@$DIGEST\"">>),
-    ?assertEqual(1, length(binary:matches(Body, <<"$IMAGE:latest">>))),
+    Has(<<"imagetools create --prefer-index=false --tag \"$IMAGE:latest\" \"$IMAGE@$DIGEST\"">>),
+    Has(<<"if [ \"$got\" != \"$DIGEST\" ]; then">>),
+    ?assertEqual(1, length(binary:matches(Body, <<"imagetools create">>))),
     ?assertEqual(nomatch, binary:match(Body, <<",$img:latest">>)).
 
 %% The full release, 28.4.3 and not 28: `otp_release' names only the major.
