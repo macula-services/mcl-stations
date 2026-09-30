@@ -181,16 +181,20 @@ the_image_is_signed_by_digest_test() ->
         "^      digest: \\$\\{\\{ needs\\.build-and-push\\.outputs\\.digest \\}\\}$",
         "^      digest: \\$\\{\\{ steps\\.push\\.outputs\\.digest \\}\\}$"]].
 
-%% ONLY MAIN FEEDS :latest AND ONLY A v* TAG FEEDS THE ARCHIVE. build-push can
-%% be run by hand, and from a branch every ref that was not a v* tag fell
-%% through to :latest. Any other ref is refused, naming it.
-only_main_and_release_tags_publish_test() ->
+%% :latest is the dev fleet's deploy channel (Raf, 2026-09-30). The build publishes a v* tag's
+%% version only, and main :main and :<sha>; any other ref ends in exit 1. :latest moves in
+%% promote-latest, on a v* tag, only after attest signed the digest.
+latest_moves_only_after_attest_on_a_version_tag_test() ->
     {ok, Body} = file:read_file(alongside(".github/workflows/build-push.yml")),
-    ?assertMatch({match, _}, re:run(Body, "^\\s+refs/heads/main\\) echo \"tags=\\S+:latest\"",
-                                    [multiline])),
-    ?assertMatch({match, _}, re:run(Body, "^\\s+\\*\\) echo \"::error::.*\\$GITHUB_REF.*exit 1",
-                                    [multiline])),
-    ?assertEqual(nomatch, binary:match(Body, <<"else">>)).
+    Has = fun(Bin) -> ?assertNotEqual(nomatch, binary:match(Body, Bin)) end,
+    Has(<<"refs/tags/v*)    echo \"tags=$img:${GITHUB_REF#refs/tags/v}\" >> \"$GITHUB_OUTPUT\" ;;">>),
+    Has(<<"refs/heads/main) echo \"tags=$img:main,$img:${GITHUB_SHA}\" >> \"$GITHUB_OUTPUT\" ;;">>),
+    Has(<<"exit 1 ;;">>),
+    Has(<<"\n  promote-latest:\n    needs: [build-and-push, attest]\n"
+          "    if: startsWith(github.ref, 'refs/tags/v')">>),
+    Has(<<"imagetools create --tag \"$IMAGE:latest\" \"$IMAGE@$DIGEST\"">>),
+    ?assertEqual(1, length(binary:matches(Body, <<"$IMAGE:latest">>))),
+    ?assertEqual(nomatch, binary:match(Body, <<",$img:latest">>)).
 
 %% The full release, 28.4.3 and not 28: `otp_release' names only the major.
 running_otp() ->
