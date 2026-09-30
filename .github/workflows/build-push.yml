@@ -1,16 +1,16 @@
 # Build the OCI image for mcl-stations and push to the registry.
 #
-# TWO CHANNELS, AND A TAG PUSH MUST NOT TOUCH THE DEPLOY ONE.
+# TWO CHANNELS, AND ONLY A RELEASE MOVES :latest.
 #
-#   push to main : publishes :latest        <- the deploy channel
-#   push of v*   : publishes :<semver> ONLY <- the rollback archive
+#   push of v*   : publishes :<semver> and :latest  <- the dev fleet's deploy channel
+#   push to main : publishes :main and :<sha>       <- the tip, for trying; nothing follows it
 #
-# The deployed compose tracks :latest under watchtower for zero-touch deploys,
-# and the semver tags stay published so a bad release can be pinned back to a
-# known one. A tag that also moved :latest would roll every box the moment a
-# release was cut, so cutting a release and deploying one are separate acts.
+# The dev fleet (macula-fleet) runs :latest: each box's reconciler pulls it, verifies the
+# digest it resolved to (signature, SBOM, provenance) and runs that digest. So a green v* tag
+# IS the deploy, with no commit to the fleet, and a push to main deploys nothing. The semver
+# tags stay published, so a bad release can be pinned back to a known one.
 #
-# NO PATH FILTER, ON PURPOSE. A docs-only push should not rebuild :latest and
+# NO PATH FILTER, ON PURPOSE. A docs-only push should not rebuild the image and
 # restart every box, but `paths-ignore' cannot be trusted with that: on the push
 # that CREATES a branch GitHub evaluates it on the head commit alone, so a first
 # push ending in a README edit silently built no image. scripts/is_image_push.sh
@@ -68,17 +68,21 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       # Emits the COMPLETE tag list, so the condition governs all of it. ONLY
-      # MAIN FEEDS :latest AND ONLY A v* TAG FEEDS THE ARCHIVE: the workflow can
-      # be run by hand from any branch, and a branch build must never overwrite
-      # the deploy channel, so any other ref is refused, naming it.
+      # A v* TAG FEEDS :latest AND ONLY MAIN FEEDS :main: the workflow can be run
+      # by hand from any branch, and a branch build must never overwrite either,
+      # so any other ref is refused, naming it.
       - name: Set tags
         if: steps.gate.outputs.build == 'true'
         id: tag
         run: |
+          # :latest is the dev fleet's deploy channel: it moves only on a v* tag whose build went
+          # green, and a box picks it up on its next reconcile. main publishes :main and :<sha>
+          # for trying the tip; no box follows those.
+          img=ghcr.io/macula-services/mcl-stations
           case "${GITHUB_REF}" in
-            refs/tags/v*)    echo "tags=ghcr.io/macula-services/mcl-stations:${GITHUB_REF#refs/tags/v}" >> "$GITHUB_OUTPUT" ;;
-            refs/heads/main) echo "tags=ghcr.io/macula-services/mcl-stations:latest" >> "$GITHUB_OUTPUT" ;;
-            *) echo "::error::only main publishes :latest and only a v* tag publishes a version; refusing $GITHUB_REF"; exit 1 ;;
+            refs/tags/v*)    echo "tags=$img:${GITHUB_REF#refs/tags/v},$img:latest" >> "$GITHUB_OUTPUT" ;;
+            refs/heads/main) echo "tags=$img:main,$img:${GITHUB_SHA}" >> "$GITHUB_OUTPUT" ;;
+            *) echo "::error::only a v* tag publishes a version and :latest, only main :main and :<sha>; refusing ${GITHUB_REF}"; exit 1 ;;
           esac
 
       - name: Build and push
