@@ -5,6 +5,12 @@ All notable changes to this project are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.0] - 2026-10-05
+
+- **On mcl_om 0.37.6 and macula 13.5.0** (`mcl_om ~> 0.37`, `macula ~> 13.5`, released versions only). mcl_om 0.37 brings
+  the inbound guard pipeline (mcl-om#14); macula 13.5 adds `macula_record:decode_payload/1`, no wire
+  change. This release is what the dev fleet's `:latest` follows: CI signs it, then moves `:latest`.
+
 ## [0.1.0] - 2026-09-28
 
 ### Changed
