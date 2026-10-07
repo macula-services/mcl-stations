@@ -65,12 +65,13 @@ ENV RELX_REPLACE_OS_VARS=true
 ENV MCL_NODE_NAME=mcl_stations
 ENV MCL_NODE_HOST=127.0.0.1
 ENV MCL_COOKIE=mcl_stations
-ENV MCL_HEALTH_PORT=8495
 
 VOLUME ["/etc/mcl/secrets"]
 
-EXPOSE 8495
+# /health is served on a Unix socket only (mcl_om health_socket); mcl_om
+# creates the socket, mode 0600, in this directory.
+RUN mkdir -p /run/mcl
 HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
-    CMD curl -fsS "http://127.0.0.1:${MCL_HEALTH_PORT}/health" || exit 1
+    CMD curl -fsS --unix-socket /run/mcl/health.sock http://localhost/health || exit 1
 
 CMD ["/app/bin/mcl_stations", "foreground"]

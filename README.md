@@ -4,7 +4,7 @@
 
 ## Status: serving list_stations
 
-The service boots, joins the mesh and answers `/health` on 8495. It keeps a
+The service boots, joins the mesh and answers `/health` on its Unix socket (`/run/mcl/health.sock`). It keeps a
 directory of every macula station and serves it as one RPC.
 
 **What it reads.** Three DHT record types, the ones every macula-station
@@ -84,7 +84,7 @@ release needs `librocksdb.so.11` at run time, which the runtime image carries.
 | `MCL_DATA_DIR` | `/var/lib/mcl-stations` | Where the read model lives. A cache, rebuilt at boot. |
 | `MCL_SERVICE_NAME` | `mcl-stations` | Label on the boot claim the realm's operator sees. |
 | `MCL_BOX` | from the host | Label naming the box, also on the boot claim. Set it where you deploy. |
-| `MCL_HEALTH_PORT` | `8495` | Health endpoint. Host networking makes a collision a silent bind failure, so check the host before changing.  |
+| (none) | `/run/mcl/health.sock` | `/health` is served on this Unix socket inside the container (mcl_om `health_socket`); no health port is bound. `scripts/health.sh` asks it. |
 | `MCL_NODE_NAME` | `mcl_stations` | Erlang node name. |
 | `MCL_NODE_HOST` | `127.0.0.1` | Erlang node host. |
 | `MCL_COOKIE` | `mcl_stations` | Erlang cookie. |

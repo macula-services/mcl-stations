@@ -7,9 +7,14 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [0.3.0] - 2026-10-07
 
-- **On mcl_om 0.38.0 and macula 14.2** (`mcl_om ~> 0.38`, `macula ~> 14.2`, released versions only), the SDK base
+- **On mcl_om 0.39.0 and macula 14.2** (`mcl_om ~> 0.39`, `macula ~> 14.2`, released versions only), the SDK base
   every deployed service runs on. With `macula ~> 13.5` main resolved mcl_om 0.38 on a macula 13, a pair mcl_om 0.38
-  was not built for. The dependency floors follow. No behaviour change. (#1)
+  was not built for. The dependency floors follow. (#1)
+
+- **`/health` is served on a Unix socket only** (`/run/mcl/health.sock`, mcl_om 0.39 `health_socket`). No TCP
+  health listener runs and no health port is bound on the host: `MCL_HEALTH_PORT`, the `health_port` setting and
+  its `EXPOSE` are gone. The image creates `/run/mcl` and probes the socket; `scripts/health.sh` asks it through
+  the container engine. A deploy that probed the port must probe the socket.
 
 ## [0.2.0] - 2026-10-05
 

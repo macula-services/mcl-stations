@@ -15,7 +15,7 @@ macula_floor_test() ->
     ?assert(at_least(vsn(macula), [14, 2, 0])).
 
 mcl_om_floor_test() ->
-    ?assert(at_least(vsn(mcl_om), [0, 38, 0])).
+    ?assert(at_least(vsn(mcl_om), [0, 39, 0])).
 
 %% Whether an "X.Y.Z" version is at least [Major, Minor, Patch].
 at_least(Vsn, Floor) ->
