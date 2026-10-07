@@ -5,6 +5,12 @@ All notable changes to this project are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] - 2026-10-07
+
+- **On mcl_om 0.38.0 and macula 14.2** (`mcl_om ~> 0.38`, `macula ~> 14.2`, released versions only), the SDK base
+  every deployed service runs on. With `macula ~> 13.5` main resolved mcl_om 0.38 on a macula 13, a pair mcl_om 0.38
+  was not built for. The dependency floors follow. No behaviour change. (#1)
+
 ## [0.2.0] - 2026-10-05
 
 - **On mcl_om 0.37.6 and macula 13.5.0** (`mcl_om ~> 0.37`, `macula ~> 13.5`, released versions only). mcl_om 0.37 brings
