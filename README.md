@@ -96,10 +96,13 @@ what stops a config table in a README and the real environment drifting.
 
 ## Deployment
 
-The image has two channels. A push to `main` publishes
-`ghcr.io/macula-services/mcl-stations:latest`, the deploy channel: a host that follows
-`:latest` deploys every merge. A `v*` tag publishes its own version and nothing
-else, the rollback archive: pin a host to one to roll back. A push that changes
+A `v*` tag publishes `ghcr.io/macula-services/mcl-stations:<version>` and nothing else, signed
+by digest with its SBOM and provenance (macula-ci-images' `attest-image.yml`). A push to
+`main` publishes `:main` and `:<sha>`, which nothing follows, and nothing moves `:latest`.
+The fleet runs a release by digest: macula-fleet's pin-releases workflow finds the signed
+release, verifies it was signed on its tag and pins `<version>@sha256:<digest>`
+(macula-fleet#14, #15), so a green `v*` tag is the deploy. To roll back, revert the pin and
+hold the image there. A push that changes
 only documentation builds no image (`scripts/is_image_push.sh`).
 
 The service's org, the `<org>` in every procedure it offers (`<org>/<name>`), is
