@@ -5,6 +5,10 @@ All notable changes to this project are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.1] - 2026-10-10
+
+- **Rebuilt on macula ~> 14 (newest release):** request admission frees the slot when the reply is sent, and caller attribution covers every payload shape (macula#89, macula#60).
+
 ## [0.3.0] - 2026-10-07
 
 - **On mcl_om 0.39.0 and macula 14.2** (`mcl_om ~> 0.39`, `macula ~> 14.2`, released versions only), the SDK base
