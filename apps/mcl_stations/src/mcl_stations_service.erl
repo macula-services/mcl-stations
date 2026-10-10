@@ -10,8 +10,8 @@
 -behaviour(mcl_om_service).
 
 -export([info/0, start/1, stop/1, health/0, capabilities/0, identity_spec/0]).
-%% Exported for mcl_stations_service_tests.erl: the verdict for a subscription state.
--export([health_of/1]).
+%% Exported for mcl_stations_service_tests.erl: the verdict for a subscription state plus the record drops.
+-export([health_of/2]).
 
 info() ->
     #{name => <<"mcl-stations">>,
@@ -26,17 +26,22 @@ start(_Opts) ->
 
 stop(_State) -> ok.
 
-%% Green while the directory is being fed: the ingest worker holds its record
-%% subscriptions through a live pool. Without them list_stations serves
-%% frozen rows until they expire, then none, so that is degraded, never
-%% silently green.
+%% Green while the directory is being fed AND serving everything it holds:
+%% the ingest worker holds its record subscriptions through a live pool,
+%% and no stored record is being refused at serve time. Without the
+%% subscriptions list_stations serves frozen rows until they expire, then
+%% none; a refused record is dropped from its row whatever the pool does.
+%% Either is degraded, never silently green.
 health() ->
-    health_of(ingest_node_records:subscribed()).
+    health_of(ingest_node_records:subscribed(), station_record_drops:counts()).
 
-%% @doc The health verdict for a subscription state; exported for the tests.
--spec health_of(boolean()) -> ok | {degraded, not_subscribed_to_records}.
-health_of(true)  -> ok;
-health_of(false) -> {degraded, not_subscribed_to_records}.
+%% @doc The health verdict for a subscription state and the record drops
+%% gauge; exported for the tests. A refusal is not merely logged: it is
+%% the reason the service is degraded, with the per-reason counts.
+-spec health_of(boolean(), map()) -> ok | {degraded, term()}.
+health_of(true, Drops) when map_size(Drops) =:= 0  -> ok;
+health_of(true, Drops) -> {degraded, {record_verification_drops, Drops}};
+health_of(false, _Drops) -> {degraded, not_subscribed_to_records}.
 
 %% WHAT THIS SERVICE ANNOUNCES IT CAN DO. Other services find this one by these
 %% names, so each entry is a promise that something answers.

@@ -25,11 +25,23 @@ id, and a tombstone that withdraws a node_record removes that station at once.
 | none, or not a map | every known station |
 | `continent`, `country`, `city` | exact match; continent is derived from the ISO country code |
 | `near => #{lat, lng, limit}` | nearest first by great-circle distance, `limit` optional; stations without coordinates are left out |
+| `limit` | caps the result count of any of the above, applied last |
 
 The reply is `#{stations => [Row]}`. Text fields (`hostname`, `city`,
 `country`, `continent`, `kind`, `version`, each `host_advertised` entry) go out
 as CBOR text, so non-BEAM callers read strings, not bytes. `node_id` is the
 station's 32-byte key id and stays bytes.
+
+**Rows are self-certifying.** Each row carries the station's raw signed
+records in `node_record` and `station_endpoint` (bytes, ~7.2 KB together), so a
+client verifies them itself instead of trusting this directory; the projected
+fields beside them are convenience. A row serves a record type's fields only
+while that record is unexpired AND its stored bytes verify again under the
+node's crypto profile: one that does not is refused, never served, and shows up
+in `/health` (`{degraded, {record_verification_drops, Counts}}`). Serving is
+per record type, so a lapsed `node_record` drops its fields while a live
+`station_endpoint` keeps the station listed. Because a row now carries its
+records, callers that do not want the whole directory pass `limit`.
 
 It asks the realm for no authority: the records it reads live in the DHT's own
 realm, and serving an RPC needs no realm-granted topic.
@@ -37,7 +49,9 @@ realm, and serving an RPC needs no realm-granted topic.
 **Stations that go dark.** Each row keeps the expiry of the records it came
 from. A live station refreshes them well before they lapse; one that crashed
 or lost its link stops refreshing, and once all its records have expired it
-is no longer listed, with no tombstone needed.
+is no longer listed, with no tombstone needed. A record type's fields and raw
+bytes stop being served at its own expiry, before the station as a whole
+lapses.
 
 **The read model** is a `barrel_docdb` database under `MCL_DATA_DIR`
 (`/var/lib/mcl-stations`), a cache rebuilt from the DHT snapshot on every boot.

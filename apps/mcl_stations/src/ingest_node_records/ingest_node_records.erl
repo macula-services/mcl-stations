@@ -67,13 +67,10 @@ handle_cast(_Msg, State) -> {noreply, State}.
 handle_info(connect, State) ->
     {noreply, try_connect(mcl_om:mesh_handles(), State)};
 handle_info({node_record, Record}, State) ->
-    ok = station_read_model:upsert_node_record(macula_record:read_node_record(Record),
-                                               macula_record:expires_at(Record)),
+    ok = station_read_model:upsert_node_record(Record),
     {noreply, State};
 handle_info({station_endpoint, Record}, State) ->
-    ok = station_read_model:upsert_station_endpoint(macula_record:key_id(Record),
-                                                    macula_record:read_station_endpoint(Record),
-                                                    macula_record:expires_at(Record)),
+    ok = station_read_model:upsert_station_endpoint(Record),
     {noreply, State};
 handle_info({tombstone, Record}, State) ->
     ok = retire_if_node_record(macula_record:read_tombstone(Record), macula_record:key_id(Record)),

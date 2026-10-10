@@ -62,16 +62,24 @@ info_version_matches_the_application_test() ->
     #{version := Reported} = ?SERVICE:info(),
     ?assertEqual(list_to_binary(Vsn), Reported).
 
-%% HEALTH SAYS WHETHER THE DIRECTORY IS BEING FED. A worker that lost its
-%% record subscriptions serves frozen rows, then none, while a scaffold
-%% `health() -> ok' stayed green throughout (Fable, 2026-09-28).
+%% HEALTH SAYS WHETHER THE DIRECTORY IS BEING FED, AND WHETHER IT IS
+%% SERVING WHAT IT HOLDS. A worker that lost its record subscriptions
+%% serves frozen rows, then none, while a scaffold `health() -> ok' stayed
+%% green throughout (Fable, 2026-09-28); a stored record that no longer
+%% verifies is refused at serve time, and a directory quietly dropping
+%% rows must be degraded too, naming the per-reason counts.
 health_is_green_while_the_records_are_subscribed_test() ->
-    ?assertEqual(ok, ?SERVICE:health_of(true)).
+    ?assertEqual(ok, ?SERVICE:health_of(true, #{})).
 
 health_is_degraded_without_the_record_subscriptions_test() ->
-    ?assertEqual({degraded, not_subscribed_to_records}, ?SERVICE:health_of(false)),
+    ?assertEqual({degraded, not_subscribed_to_records}, ?SERVICE:health_of(false, #{})),
     %% no ingest worker running here at all
     ?assertEqual({degraded, not_subscribed_to_records}, ?SERVICE:health()).
+
+health_names_the_record_drops_test() ->
+    Drops = #{{node_record, signature_invalid} => 2},
+    ?assertEqual({degraded, {record_verification_drops, Drops}},
+                 ?SERVICE:health_of(true, Drops)).
 
 %% The one promise this service makes: the station directory, answered by
 %% the list_stations desk. The wire name becomes `Org/list_stations', the
