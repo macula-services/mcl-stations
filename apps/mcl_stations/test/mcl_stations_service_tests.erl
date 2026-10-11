@@ -81,6 +81,16 @@ health_names_the_record_drops_test() ->
     ?assertEqual({degraded, {record_verification_drops, Drops}},
                  ?SERVICE:health_of(true, Drops)).
 
+%% A pool that holds its subscriptions is not the same as a pool with a
+%% live station link: with every seed refused the worker stays subscribed
+%% (the pool process lives and redials) while nothing arrives. That is the
+%% isolation the fleet saw on 2026-10-11: 35h of refused links, health ok,
+%% and the directory missing a station the whole time (issue #2).
+health_is_degraded_when_no_station_link_is_up_test() ->
+    ?assertEqual({degraded, no_live_station_link},
+                 ?SERVICE:health_of(true, false, #{})),
+    ?assertEqual(ok, ?SERVICE:health_of(true, true, #{})).
+
 %% The one promise this service makes: the station directory, answered by
 %% the list_stations desk. The wire name becomes `Org/list_stations', the
 %% org being deploy config. Open, because every row in the reply is public
