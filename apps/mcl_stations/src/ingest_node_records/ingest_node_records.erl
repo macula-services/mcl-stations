@@ -126,8 +126,9 @@ refresh_links(State) ->
     end.
 
 pool_has_live_link(Pool) ->
-    try macula_client:is_healthy(Pool) of
-        Healthy -> Healthy
+    try macula_client:status(Pool) of
+        {ok, #{healthy_links := Healthy}} -> Healthy > 0;
+        _                                 -> false
     catch _:_ -> false
     end.
 
