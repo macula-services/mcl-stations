@@ -69,17 +69,17 @@ info_version_matches_the_application_test() ->
 %% verifies is refused at serve time, and a directory quietly dropping
 %% rows must be degraded too, naming the per-reason counts.
 health_is_green_while_the_records_are_subscribed_test() ->
-    ?assertEqual(ok, ?SERVICE:health_of(true, #{})).
+    ?assertEqual(ok, ?SERVICE:health_of(true, true, #{})).
 
 health_is_degraded_without_the_record_subscriptions_test() ->
-    ?assertEqual({degraded, not_subscribed_to_records}, ?SERVICE:health_of(false, #{})),
+    ?assertEqual({degraded, not_subscribed_to_records}, ?SERVICE:health_of(false, false, #{})),
     %% no ingest worker running here at all
     ?assertEqual({degraded, not_subscribed_to_records}, ?SERVICE:health()).
 
 health_names_the_record_drops_test() ->
     Drops = #{{node_record, signature_invalid} => 2},
     ?assertEqual({degraded, {record_verification_drops, Drops}},
-                 ?SERVICE:health_of(true, Drops)).
+                 ?SERVICE:health_of(true, true, Drops)).
 
 %% A pool that holds its subscriptions is not the same as a pool with a
 %% live station link: with every seed refused the worker stays subscribed

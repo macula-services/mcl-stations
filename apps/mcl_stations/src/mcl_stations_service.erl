@@ -11,11 +11,11 @@
 
 -export([info/0, start/1, stop/1, health/0, capabilities/0, identity_spec/0]).
 %% Exported for mcl_stations_service_tests.erl: the verdict for a subscription state plus the record drops.
--export([health_of/2]).
+-export([health_of/3]).
 
 info() ->
     #{name => <<"mcl-stations">>,
-      version => <<"0.3.1">>,
+      version => <<"0.3.2">>,
       description => <<"Live, filterable directory of macula stations: geo, liveness and direct-dial address, so clients never hand-maintain a station list">>}.
 
 %% The read model is this service's own: opened here, before the supervisor
@@ -27,21 +27,32 @@ start(_Opts) ->
 stop(_State) -> ok.
 
 %% Green while the directory is being fed AND serving everything it holds:
-%% the ingest worker holds its record subscriptions through a live pool,
-%% and no stored record is being refused at serve time. Without the
-%% subscriptions list_stations serves frozen rows until they expire, then
-%% none; a refused record is dropped from its row whatever the pool does.
-%% Either is degraded, never silently green.
+%% the ingest worker holds its record subscriptions through a live pool
+%% with a live station link, and no stored record is being refused at
+%% serve time. Without the subscriptions list_stations serves frozen rows
+%% until they expire, then none; a pool whose every station link is
+%% refused delivers nothing while `subscribed' stays true (the pool
+%% process lives and redials); a refused record is dropped from its row
+%% whatever the pool does. Any of the three is degraded, never silently
+%% green (macula-services/mcl-stations#2).
 health() ->
-    health_of(ingest_node_records:subscribed(), station_record_drops:counts()).
+    health_of(ingest_node_records:subscribed(),
+              ingest_node_records:links_up(),
+              station_record_drops:counts()).
 
-%% @doc The health verdict for a subscription state and the record drops
-%% gauge; exported for the tests. A refusal is not merely logged: it is
-%% the reason the service is degraded, with the per-reason counts.
--spec health_of(boolean(), map()) -> ok | {degraded, term()}.
-health_of(true, Drops) when map_size(Drops) =:= 0  -> ok;
-health_of(true, Drops) -> {degraded, {record_verification_drops, Drops}};
-health_of(false, _Drops) -> {degraded, not_subscribed_to_records}.
+%% @doc The health verdict for a subscription state, the pool's link state
+%% and the record drops gauge; exported for the tests. A refusal is not
+%% merely logged: it is the reason the service is degraded, with the
+%% per-reason counts.
+-spec health_of(boolean(), boolean(), map()) -> ok | {degraded, term()}.
+health_of(false, _LinksUp, _Drops) ->
+    {degraded, not_subscribed_to_records};
+health_of(true, false, _Drops) ->
+    {degraded, no_live_station_link};
+health_of(true, true, Drops) when map_size(Drops) =:= 0 ->
+    ok;
+health_of(true, true, Drops) ->
+    {degraded, {record_verification_drops, Drops}}.
 
 %% WHAT THIS SERVICE ANNOUNCES IT CAN DO. Other services find this one by these
 %% names, so each entry is a promise that something answers.
