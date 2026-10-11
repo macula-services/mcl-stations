@@ -9,6 +9,8 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 - **Health degrades when the ingest pool has no live station link** (`no_live_station_link`): a pool whose every seed is refused stays `subscribed` while nothing arrives, and the directory kept reporting `ok` through a 35h outage that hid a station the whole time (#2).
 
+- **Rebuilt on macula 14.8.2** (refused dials back off further each time, macula#95).
+
 ## [0.3.1] - 2026-10-10
 
 - **Rebuilt on macula ~> 14 (newest release):** request admission frees the slot when the reply is sent, and caller attribution covers every payload shape (macula#89, macula#60).
