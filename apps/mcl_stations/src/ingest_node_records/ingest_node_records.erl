@@ -37,13 +37,14 @@
 
 -behaviour(gen_server).
 
--export([start_link/0, subscribed/0]).
+-export([start_link/0, subscribed/0, links_up/0]).
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2]).
 
 -define(TYPE_NODE_RECORD, 16#01).
 -define(TYPE_TOMBSTONE, 16#0C).
 -define(TYPE_STATION_ENDPOINT, 16#12).
 -define(RETRY_MS, 5000).
+-define(LINK_POLL_MS, 15000).
 
 start_link() ->
     gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
@@ -60,12 +61,26 @@ subscribed() ->
     catch exit:{noproc, _} -> false
     end.
 
+%% @doc Whether the pool the worker subscribes through currently has a
+%% live station link. False while there is no pool or none of its links
+%% is healthy: holding subscriptions through a pool whose every seed is
+%% refused delivers nothing, which is not a fed directory.
+-spec links_up() -> boolean().
+links_up() ->
+    try gen_server:call(?MODULE, links_up, 5000)
+    catch exit:{noproc, _} -> false
+    end.
+
 handle_call(subscribed, _From, State) -> {reply, is_map_key(pool, State), State};
+handle_call(links_up, _From, State) -> {reply, is_map_key(links_up, State) andalso maps:get(links_up, State), State};
 handle_call(_Msg, _From, State) -> {reply, {error, unknown_call}, State}.
 handle_cast(_Msg, State) -> {noreply, State}.
 
 handle_info(connect, State) ->
     {noreply, try_connect(mcl_om:mesh_handles(), State)};
+handle_info(poll_links, State) ->
+    erlang:send_after(?LINK_POLL_MS, self(), poll_links),
+    {noreply, refresh_links(State)};
 handle_info({node_record, Record}, State) ->
     ok = station_read_model:upsert_node_record(Record),
     {noreply, State};
@@ -95,10 +110,26 @@ try_connect({ok, Pool, _Realm}, State) ->
                                        fun(R) -> Self ! {station_endpoint, R} end),
     {ok, _} = macula:subscribe_records(Pool, ?TYPE_TOMBSTONE,
                                        fun(R) -> Self ! {tombstone, R} end),
+    erlang:send_after(?LINK_POLL_MS, self(), poll_links),
     State#{pool => Pool, mon => erlang:monitor(process, Pool)};
 try_connect(_NoMesh, State) ->
     erlang:send_after(?RETRY_MS, self(), connect),
     State.
+
+%% The links_up flag is what health reads: a pool exists (subscribed) but
+%% delivers nothing while every station link is refused, so the flag is
+%% refreshed on a timer and cleared with the pool.
+refresh_links(State) ->
+    case maps:find(pool, State) of
+        {ok, Pool} -> State#{links_up => pool_has_live_link(Pool)};
+        error      -> maps:remove(links_up, State)
+    end.
+
+pool_has_live_link(Pool) ->
+    try macula_client:status(Pool) of
+        {ok, #{healthy_links := Healthy}} -> Healthy > 0
+    catch _:_ -> false
+    end.
 
 %% Replayed through this process's own mailbox, so a snapshot record and a
 %% live one take the same path.
