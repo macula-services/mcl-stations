@@ -78,7 +78,8 @@ list_stations_test_() ->
         fun near_sorts_nearest_first_and_excludes_geo_less_stations/1,
         fun near_respects_limit/1,
         fun limit_caps_a_listing_whatever_the_filter/1,
-        fun reply_sends_text_as_text_and_node_id_as_bytes/1,
+        fun reply_sends_text_as_text_and_id_as_text_and_node_id_as_bytes/1,
+        fun reply_id_comes_back_as_text_and_node_id_as_bytes_through_the_encoder/1,
         fun reply_rows_carry_their_raw_signed_records/1,
         fun filters_arrive_the_way_a_peer_sends_them/1,
         fun a_payload_that_is_not_a_map_lists_every_station/1,
@@ -130,15 +131,37 @@ limit_caps_a_listing_whatever_the_filter(_DbName) ->
     [?_assertEqual(2, length(All)),
      ?_assertEqual(2, length(Europe))].
 
-%% Non-BEAM callers read these fields; bare binaries reach them as bytes.
-reply_sends_text_as_text_and_node_id_as_bytes(_DbName) ->
+%% Non-BEAM callers read these fields; bare binaries reach them as bytes,
+%% so `id' (64 ASCII hex as stored) is answered as text (mcl-stations#6).
+%% `node_id' stays the 32 raw bytes: a BEAM client dials a discovered
+%% station only when it is 32 bytes (`macula_client:seed_from_fields/4'),
+%% and hex would silently drop every row from every pool's discovery.
+reply_sends_text_as_text_and_id_as_text_and_node_id_as_bytes(_DbName) ->
     {reply, #{stations := [Row]}, _} =
         list_stations:handle_request(#{country => <<"DE">>}, undefined),
     NodeId = maps:get(<<"node_id">>, Row),
+    {text, IdHex} = maps:get(<<"id">>, Row),
     [?_assertEqual({text, <<"DE">>}, maps:get(<<"country">>, Row)),
      ?_assertEqual({text, <<"Europe">>}, maps:get(<<"continent">>, Row)),
+     ?_assertEqual(64, byte_size(IdHex)),
      ?_assert(is_binary(NodeId) andalso byte_size(NodeId) =:= 32),
      ?_assertEqual(50.4779, maps:get(<<"lat">>, Row))].
+
+%% What a client actually receives: encode the row the way a reply is
+%% encoded and read it back. Before mcl-stations#6 `id' came back as a
+%% bare binary here, which is a CBOR byte string -- an opaque blob in
+%% every non-BEAM client. An assertion on the tuple alone cannot fail if
+%% the shape changes; this one reads the encoded form. `node_id' is
+%% asserted the other way round on purpose: bytes there is the contract
+%% the SDK dials on.
+reply_id_comes_back_as_text_and_node_id_as_bytes_through_the_encoder(_DbName) ->
+    {reply, #{stations := [Row]}, _} =
+        list_stations:handle_request(#{country => <<"DE">>}, undefined),
+    Decoded = macula_record_cbor:decode(macula_record_cbor:encode(Row)),
+    [?_assertMatch({text, _}, maps:get(<<"id">>, Decoded)),
+     ?_assertEqual(maps:get(<<"id">>, Row), maps:get(<<"id">>, Decoded)),
+     ?_assertEqual(maps:get(<<"node_id">>, Row), maps:get(<<"node_id">>, Decoded)),
+     ?_assertEqual(32, byte_size(maps:get(<<"node_id">>, Decoded)))].
 
 %% A row carries the raw signed node_record, so a client verifies it
 %% itself instead of trusting this directory; what it gets back verifies

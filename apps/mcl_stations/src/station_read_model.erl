@@ -161,14 +161,25 @@ part(Doc, RawKey, ExpiresKey, FieldKeys, NowMs) ->
 %%
 %% macula encodes a bare binary as a CBOR byte string and `{text, Bin}' as
 %% a CBOR text string, so untagged text reaches non-BEAM callers
-%% (macula-mcp, macula-cli, the SDKs) as bytes. `id', `node_id' and `_rev'
-%% are identifiers and stay bytes; numbers are unaffected.
+%% (macula-mcp, macula-cli, the SDKs) as bytes. `id' is 64 ASCII hex as
+%% stored and goes out tagged as text (mcl-stations#6); `_rev' stays bytes:
+%% it is a docdb handle, not an identifier a client reads.
+%%
+%% ⚠ `node_id' STAYS THE 32 RAW BYTES, DELIBERATELY. Hex text here would
+%% look right and would empty every BEAM client's station discovery:
+%% `macula_client:seed_from_fields/4' dials a discovered station only when
+%% its `node_id' is a binary of byte_size 32 (`expected_node_id'), so a
+%% 64-byte hex row is skipped, silently, row by row. The move to hex is
+%% SDK first (macula-io/macula, filed from mcl-stations#6) and only then
+%% here; until that release is out, this field is bytes.
 -spec to_wire(map()) -> map().
 to_wire(Doc) ->
     maps:map(fun wire_value/2, Doc).
 
 wire_value(<<"host_advertised">>, Hosts) when is_list(Hosts) ->
     [text(Host) || Host <- Hosts];
+wire_value(<<"id">>, Id) ->
+    text_if(is_binary(Id), Id);
 wire_value(Key, Value) ->
     text_if(is_text_field(Key), Value).
 

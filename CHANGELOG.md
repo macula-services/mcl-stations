@@ -5,6 +5,11 @@ All notable changes to this project are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.4.1 - 2026-10-20
+
+- **`list_stations` answers `id` as text** (mcl-stations#6). `id` is 64 ASCII hex characters as stored, but it arrived as a CBOR byte string, so every non-BEAM client saw an opaque blob and had to base64-decode it before it could show or compare a station. It now goes out tagged as text, in `station_read_model:to_wire/1`. `_rev` and the raw signed records stay bytes: one is a docdb handle, the others are what a client verifies. A test asserts `id` survives the encoder as text, so a regression to bytes fails rather than shipping a blob.
+- **`node_id` stays the 32 raw bytes, deliberately.** Hex text was written and reverted before release: a BEAM client dials a discovered station only when its row's `node_id` is 32 bytes (`macula_client:seed_from_fields/4` pins it as `expected_node_id`), so 64-byte hex makes it skip every row, silently emptying station discovery for every pool that finds stations through this service. Moving `node_id` to hex is SDK first; the macula issue filed from mcl-stations#6 tracks it, and the field changes here only after that release.
+
 ## 0.4.0 - 2026-10-17
 
 - wire 1.0: on macula 15.6 / mcl_om 1.0 (macula-io/macula#105). A wire 1.0 node and a 0.10.3-fleet node do not interoperate, so this release reaches a box only on the flag day (macula-io/macula-fleet#27).

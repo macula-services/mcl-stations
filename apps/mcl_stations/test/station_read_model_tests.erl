@@ -241,9 +241,10 @@ with_version(#{payload := P} = Unsigned, Version) ->
     Unsigned#{payload := P#{{text, <<"version">>} => {text, Version}}}.
 
 %% to_wire/1 needs no database: it only reshapes a doc for the
-%% list_stations reply. Text fields and host_advertised entries become
-%% `{text, Bin}'; ids, the revision and numbers pass through untouched.
-to_wire_tags_text_fields_and_leaves_ids_and_numbers_test() ->
+%% list_stations reply. Text fields, host_advertised entries, `id' and
+%% `node_id' become `{text, Bin}'; the revision, numbers and raw signed
+%% records pass through untouched.
+to_wire_tags_text_fields_and_leaves_numbers_and_records_test() ->
     NodeId = crypto:strong_rand_bytes(32),
     Doc = #{<<"id">> => binary:encode_hex(NodeId, lowercase), <<"node_id">> => NodeId,
             <<"_rev">> => <<"2-abc">>, <<"hostname">> => <<"station-de-falkenstein.macula.io">>,
@@ -254,7 +255,8 @@ to_wire_tags_text_fields_and_leaves_ids_and_numbers_test() ->
             <<"host_advertised">> => [<<"2a01:4f8::1">>, <<"5.6.7.8">>],
             <<"node_record">> => <<"raw-signed-bytes">>,
             <<"last_node_record_at">> => 1788355047886, <<"last_endpoint_at">> => 1788355047999},
-    ?assertEqual(Doc#{<<"hostname">> => {text, <<"station-de-falkenstein.macula.io">>},
+    ?assertEqual(Doc#{<<"id">> => {text, binary:encode_hex(NodeId, lowercase)},
+                      <<"hostname">> => {text, <<"station-de-falkenstein.macula.io">>},
                       <<"city">> => {text, <<"Falkenstein">>},
                       <<"country">> => {text, <<"DE">>},
                       <<"continent">> => {text, <<"Europe">>},
@@ -263,7 +265,36 @@ to_wire_tags_text_fields_and_leaves_ids_and_numbers_test() ->
                       <<"host_advertised">> => [{text, <<"2a01:4f8::1">>}, {text, <<"5.6.7.8">>}]},
                  station_read_model:to_wire(Doc)).
 
-to_wire_leaves_a_doc_without_text_fields_unchanged_test() ->
-    Doc = #{<<"id">> => <<"ab">>, <<"node_id">> => crypto:strong_rand_bytes(32), <<"quic_port">> => 4433,
-            <<"host_advertised">> => []},
-    ?assertEqual(Doc, station_read_model:to_wire(Doc)).
+%% `id' is the whole point of mcl-stations#6: a row with no other text
+%% field still answers it as text, and nothing else moves.
+to_wire_id_is_text_even_without_any_other_text_field_test() ->
+    NodeId = crypto:strong_rand_bytes(32),
+    Doc = #{<<"id">> => binary:encode_hex(NodeId, lowercase), <<"node_id">> => NodeId,
+            <<"quic_port">> => 4433, <<"host_advertised">> => []},
+    ?assertEqual(Doc#{<<"id">> => {text, binary:encode_hex(NodeId, lowercase)}},
+                 station_read_model:to_wire(Doc)).
+
+%% ⚠ `node_id' MUST STAY A BARE 32-BYTE BINARY -- this is a pinned
+%% behaviour, not an oversight. A BEAM client dials a discovered station
+%% only when its row's `node_id' is 32 bytes (`macula_client:
+%% seed_from_fields/4' builds `expected_node_id' from it); 64-byte hex
+%% text makes that clause fail and the station is skipped, silently, so
+%% every pool that discovers through list_stations would find nothing.
+%% The move to hex is SDK first; see mcl-stations#6 and the macula issue
+%% it links.
+to_wire_leaves_node_id_as_the_raw_bytes_the_sdk_dials_test() ->
+    NodeId = crypto:strong_rand_bytes(32),
+    Wired = station_read_model:to_wire(#{<<"node_id">> => NodeId}),
+    ?assertEqual(NodeId, maps:get(<<"node_id">>, Wired)),
+    ?assertEqual(32, byte_size(maps:get(<<"node_id">>, Wired))).
+
+%% The id must come back as text from the encoder, not merely as a tagged
+%% tuple: this reads what a non-BEAM client actually receives.
+to_wire_id_comes_back_as_text_through_the_encoder_test() ->
+    NodeId = crypto:strong_rand_bytes(32),
+    Row = station_read_model:to_wire(
+            #{<<"id">> => binary:encode_hex(NodeId, lowercase), <<"node_id">> => NodeId}),
+    Decoded = macula_record_cbor:decode(macula_record_cbor:encode(Row)),
+    Hex = binary:encode_hex(NodeId, lowercase),
+    ?assertEqual({text, Hex}, maps:get(<<"id">>, Decoded)),
+    ?assertEqual(NodeId, maps:get(<<"node_id">>, Decoded)).
