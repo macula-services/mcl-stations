@@ -141,9 +141,9 @@ release, verifies it was signed on its tag and pins `<version>@sha256:<digest>`
 hold the image there. A push that changes
 only documentation builds no image (`scripts/is_image_push.sh`).
 
-The service's org, the `<org>` in every procedure it offers (`<org>/<name>`), is
+The service's org, the `<org>` prefix on its own procedure names (`<org>/<name>`), is
 this repository's name, fixed in `config/sys.config.src`. The realm's grant names
-it; without an org mcl_om advertises nothing.
+it; without an org mcl_om refuses to boot, naming the setting.
 
 Two things CI cannot do for you, both of which have bitten:
 
@@ -151,8 +151,8 @@ Two things CI cannot do for you, both of which have bitten:
    the host with a bare `unauthorized` that names nothing. Check it after the
    first build. On ghcr the `org.opencontainers.image.source` label in the
    Containerfile is what links the package to the repository.
-2. The host needs `MCL_REALM` and the pinned station pair supplied from
-   somewhere they are not committed.
+2. The host needs `MCL_REALM` and the station seeds, each with its matching node
+   id, supplied from somewhere they are not committed.
 
 ## The service contract
 

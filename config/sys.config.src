@@ -33,7 +33,7 @@
         %% procedure it offers (`Org/Name'), and the org the realm's grant
         %% names. Fixed here rather than read from the environment, because it
         %% is a property of the service, not of where it runs. Without it
-        %% mcl_om answers `_' and advertises nothing.
+        %% mcl_om refuses to boot, naming this setting (mcl_om v1.4).
         {org,               <<"mcl-stations">>},
         %% ⚠ THE TRUST ANCHOR, AND IT IS NOT OPTIONAL. MCL_REALM above is an
         %% IDENTIFIER (sha256 of the realm name); this is the realm's public
