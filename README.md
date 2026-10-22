@@ -141,7 +141,7 @@ release, verifies it was signed on its tag and pins `<version>@sha256:<digest>`
 hold the image there. A push that changes
 only documentation builds no image (`scripts/is_image_push.sh`).
 
-The service's org, the `<org>` in every procedure it offers (`<org>/<name>`), is
+The service's org, the `<org>` prefix on its own procedure names (`<org>/<name>`), is
 this repository's name, fixed in `config/sys.config.src`. The realm's grant names
 it; without an org mcl_om advertises nothing.
 

@@ -142,7 +142,7 @@ def context():
            "procedure is open, every row public"])
     d.box("b-sys", 380, 220, 340, 150, "mcl-stations", "[mcl_om mesh service, own box]",
           ["The station directory: it snapshots", "the DHT, follows it live, and",
-           "answers one open RPC with rows a", "client can verify itself"])
+           "serves its own list_stations with", "rows a client can verify itself"])
     d.box("b-mac", 60, 450, 320, 140, "Macula stations, the mesh and DHT", "[Macula infrastructure]",
           ["Every station broadcasts its", "node_record, station_endpoint",
            "and tombstone; the DHT holds them"])
@@ -197,7 +197,7 @@ def components():
           ["ISO 3166-1 alpha-2 country code to", "continent; anything else is unknown"],
           code=True)
     d.box("b-mac", 40, 626, 360, 120, "mcl_om", "[library, ~> 1.0]",
-          ["boot/1 wires mesh, identity, health;", "the capability is registered here"], code=True)
+          ["boot/1 wires mesh, identity, health;", "it advertises capabilities/0"], code=True)
     d.box("b-mac", 420, 626, 360, 120, "macula", "[library, ~> 15.6]",
           ["find_records_by_type/2, subscribe_records/3,", "record verification under the crypto profile"],
           code=True)

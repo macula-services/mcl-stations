@@ -4,9 +4,12 @@
 of, without reading it.*
 
 **Status: 0.4.1, serving `list_stations`.** The service boots, joins the mesh,
-snapshots the DHT's station records, follows them live, and answers one open RPC
-from a `barrel_docdb` read model. It asks the realm for no authority, keeps no
-event store, and stores no station list of its own.
+snapshots the DHT's station records, follows them live, and serves
+`mcl-stations/list_stations`, which is its own procedure and the only one, from
+a `barrel_docdb` read model. `mcl_om` adds `mcl-stations/info` and
+`mcl-stations/get_limits` to every service, both open; `capabilities/0` is the
+list. It asks the realm for no authority, keeps no event store, and stores no
+station list of its own.
 
 ## Level 1: system context
 

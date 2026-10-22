@@ -62,8 +62,8 @@
 <text class="t-type" x="396" y="266">[mcl_om mesh service, own box]</text>
 <text class="t-desc" x="396" y="290">The station directory: it snapshots</text>
 <text class="t-desc" x="396" y="306">the DHT, follows it live, and</text>
-<text class="t-desc" x="396" y="322">answers one open RPC with rows a</text>
-<text class="t-desc" x="396" y="338">client can verify itself</text>
+<text class="t-desc" x="396" y="322">serves its own list_stations with</text>
+<text class="t-desc" x="396" y="338">rows a client can verify itself</text>
 <rect class="b-mac" x="60" y="450" width="320" height="140" rx="10"/>
 <text class="t-name" x="76" y="478">Macula stations, the mesh and DHT</text>
 <text class="t-type" x="76" y="496">[Macula infrastructure]</text>
