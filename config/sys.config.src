@@ -40,12 +40,12 @@
         %% SIGNING KEY, 64-hex-per-32-bytes, as carried. mcl_om decodes it and
         %% pins it as macula:connect/2's `realm_trust'.
         %%
-        %% Without it every org-namespaced advertisement this service resolves
-        %% is refused with `no_realm_key', direct dial answers `{unresolved,
-        %% no_trusted_advertisement}', and the boot claim never reaches the
-        %% realm: no pending row, no delegation, nothing callable. The node
-        %% stays green and answers /health throughout, which is why mcl_om
-        %% now refuses to start a pool without it rather than letting a
+        %% With the WRONG key, every org-namespaced advertisement this service
+        %% resolves is refused with `no_realm_key', direct dial answers
+        %% `{unresolved, no_trusted_advertisement}', and the boot claim never
+        %% reaches the realm: no pending row, no delegation, nothing callable,
+        %% while the node answers /health throughout. That failure mode is why
+        %% mcl_om refuses to start a pool with no key at all, rather than let a
         %% service look healthy and be unreachable.
         %%
         %% Public material. It is the half everyone verifies against, not a
