@@ -40,8 +40,10 @@
         %% SIGNING KEY, 64-hex-per-32-bytes, as carried. mcl_om decodes it and
         %% pins it as macula:connect/2's `realm_trust'.
         %%
-        %% With the WRONG key, every org-namespaced advertisement this service
-        %% resolves is refused with `no_realm_key', direct dial answers
+        %% With the WRONG key the signer match fails: every org-namespaced
+        %% advertisement this service resolves is refused with
+        %% `org_directory_wrong_realm' (`no_realm_key' is the other clause, no
+        %% key at all for this realm), direct dial answers
         %% `{unresolved, no_trusted_advertisement}', and the boot claim never
         %% reaches the realm: no pending row, no delegation, and no peer resolves it,
         %% while the node answers /health throughout. That failure mode is why

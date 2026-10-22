@@ -65,8 +65,9 @@ per record type, so a lapsed `node_record` drops its fields while a live
 `station_endpoint` keeps the station listed. Because a row now carries its
 records, callers that do not want the whole directory pass `limit`.
 
-It asks the realm for no authority: the records it reads live in the DHT's own
-realm, and serving an RPC needs no realm-granted topic.
+It asks the realm for one thing: a a provider authorization per org procedure, `list_stations`, `info` and `get_limits`; without it an
+advertisement never lands and `/health` reads degraded. The records it reads live
+in the DHT's own realm, and serving an RPC needs no realm-granted topic.
 
 **Stations that go dark.** Each row keeps the expiry of the records it came
 from. A live station refreshes them well before they lapse; one that crashed
@@ -134,7 +135,7 @@ what stops a config table in a README and the real environment drifting.
 
 A `v*` tag publishes `ghcr.io/macula-services/mcl-stations:<version>` and nothing else, signed
 by digest with its SBOM and provenance (macula-ci-images' `attest-image.yml`). A push to
-`main` publishes `:main` and `:<sha>`, which no box follows. `:latest` moves only on a release tag.
+`main` publishes `:main` and `:<sha>`, which no box follows. Nothing moves `:latest` at all.
 The fleet runs a release by digest: macula-fleet's pin-releases workflow finds the signed
 release, verifies it was signed on its tag and pins `<version>@sha256:<digest>`
 (macula-fleet#14, #15), so a green `v*` tag is the deploy. To roll back, revert the pin and

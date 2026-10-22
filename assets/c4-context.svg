@@ -59,7 +59,7 @@
 <text class="t-desc" x="776" y="142">procedure is open, every row public</text>
 <rect class="b-sys" x="380" y="220" width="340" height="150" rx="10"/>
 <text class="t-name" x="396" y="248">mcl-stations</text>
-<text class="t-type" x="396" y="266">[mcl_om mesh service, own box]</text>
+<text class="t-type" x="396" y="266">[mcl_om mesh service]</text>
 <text class="t-desc" x="396" y="290">The station directory: it snapshots</text>
 <text class="t-desc" x="396" y="306">the DHT, follows it live, and</text>
 <text class="t-desc" x="396" y="322">serves its own list_stations with</text>
@@ -70,12 +70,13 @@
 <text class="t-desc" x="76" y="520">Every station broadcasts its</text>
 <text class="t-desc" x="76" y="536">node_record, station_endpoint</text>
 <text class="t-desc" x="76" y="552">and tombstone; the DHT holds them</text>
-<rect class="b-mac" x="420" y="450" width="300" height="120" rx="10"/>
+<rect class="b-mac" x="420" y="450" width="300" height="136" rx="10"/>
 <text class="t-name" x="436" y="478">macula-realm</text>
 <text class="t-type" x="436" y="496">[Macula infrastructure]</text>
-<text class="t-desc" x="436" y="520">Endorses the node's identity key;</text>
-<text class="t-desc" x="436" y="536">grants no authority, because the</text>
-<text class="t-desc" x="436" y="552">DHT records are public</text>
+<text class="t-desc" x="436" y="520">Endorses the node's identity key</text>
+<text class="t-desc" x="436" y="536">and grants a provider authorization</text>
+<text class="t-desc" x="436" y="552">for each org procedure it advertises;</text>
+<text class="t-desc" x="436" y="568">the DHT records stay public</text>
 <rect class="b-cmp" x="760" y="450" width="300" height="120" rx="10"/>
 <text class="t-name" x="776" y="478">Station cache</text>
 <text class="t-type" x="776" y="496">[in-container store, no volume]</text>
@@ -89,7 +90,7 @@
 <path class="edge" d="M420 370V400H220V450" marker-end="url(#a)"/>
 <text class="t-rel" x="228" y="392">snapshots, then subscribes</text>
 <path class="edge" d="M500 370V450" marker-end="url(#a)"/>
-<text class="t-rel" x="508" y="410">boot claim, no authority asked</text>
+<text class="t-rel" x="508" y="410">boot claim and procedure grants</text>
 <path class="edge" d="M720 330H790V450" marker-end="url(#a)"/>
 <text class="t-rel" x="798" y="400">writes each record, reads</text>
 <text class="t-desc" x="60" y="620">The mesh is the source: this service holds no station list of its own, it follows what stations broadcast and joins the two records</text>

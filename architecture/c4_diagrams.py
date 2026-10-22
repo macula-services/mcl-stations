@@ -140,15 +140,15 @@ def context():
     d.box("b-ext", 760, 40, 300, 140, "Mesh callers", "[External system, any node or client]",
           ["Any node or client that calls", "mcl-stations/list_stations; the",
            "procedure is open, every row public"])
-    d.box("b-sys", 380, 220, 340, 150, "mcl-stations", "[mcl_om mesh service, own box]",
+    d.box("b-sys", 380, 220, 340, 150, "mcl-stations", "[mcl_om mesh service]",
           ["The station directory: it snapshots", "the DHT, follows it live, and",
            "serves its own list_stations with", "rows a client can verify itself"])
     d.box("b-mac", 60, 450, 320, 140, "Macula stations, the mesh and DHT", "[Macula infrastructure]",
           ["Every station broadcasts its", "node_record, station_endpoint",
            "and tombstone; the DHT holds them"])
-    d.box("b-mac", 420, 450, 300, 120, "macula-realm", "[Macula infrastructure]",
-          ["Endorses the node's identity key;", "grants no authority, because the",
-           "DHT records are public"])
+    d.box("b-mac", 420, 450, 300, 136, "macula-realm", "[Macula infrastructure]",
+          ["Endorses the node's identity key", "and grants a provider authorization",
+           "for each org procedure it advertises;", "the DHT records stay public"])
     d.box("b-cmp", 760, 450, 300, 120, "Station cache", "[in-container store, no volume]",
           ["barrel_docdb under MCL_DATA_DIR:", "a cache of the DHT snapshot,",
            "rebuilt every boot"])
@@ -159,7 +159,7 @@ def context():
     d.edge("M420 370V400H220V450")
     d.text("t-rel", 228, 392, "snapshots, then subscribes")
     d.edge("M500 370V450")
-    d.text("t-rel", 508, 410, "boot claim, no authority asked")
+    d.text("t-rel", 508, 410, "boot claim and procedure grants")
     d.edge("M720 330H790V450")
     d.text("t-rel", 798, 400, "writes each record, reads")
     d.text("t-desc", 60, 620, "The mesh is the source: this service holds no station list of its own, it follows what stations broadcast and joins the two records")
@@ -213,7 +213,7 @@ def components():
     d.edge("M915 186V210"); d.text("t-rel", 923, 206, "advertises")
     d.edge("M285 314V338"); d.text("t-rel", 293, 334, "supervises")
     d.edge("M285 458V482"); d.text("t-rel", 293, 478, "upserts, retires")
-    d.edge("M915 314V338"); d.text("t-rel", 923, 334, "observes a refusal")
+    d.edge("M915 314V338"); d.text("t-rel", 923, 328, "observes a refusal")
     d.edge("M660 262H620V542H520"); d.text("t-rel", 528, 420, "folds a row")
     d.edge("M520 570H660"); d.text("t-rel", 528, 562, "continent_of/1")
     d.text("t-desc", 40, 934, "The read model is a cache: it lives and dies with the container, and every boot replays the DHT snapshot into it. A stored record is verified")
