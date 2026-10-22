@@ -19,7 +19,7 @@ event store, and stores no station list of its own.
 | Mesh callers | External system, any node or client | Any node or client that calls `mcl-stations/list_stations`. The procedure is open, because every row in the reply is public already |
 | Macula stations, the mesh and DHT | Macula infrastructure | Every station broadcasts its `node_record` (0x01), `station_endpoint` (0x12) and `tombstone` (0x0C); the DHT holds them and this service only reads |
 | macula-realm | Macula infrastructure | Endorses the node's identity key and grants no authority: the records live in the DHT's own realm, and serving an RPC needs no realm-granted topic |
-| Station cache | External system, host directory | `barrel_docdb` under `MCL_DATA_DIR` (`/var/lib/mcl-stations`), a cache of the DHT snapshot with no volume, rebuilt every boot |
+| Station cache | In-container store | `barrel_docdb` under `MCL_DATA_DIR` (`/var/lib/mcl-stations`), inside the service's own container: a cache of the DHT snapshot with no volume, rebuilt every boot |
 
 The mesh is the source. The service holds no station list of its own: it follows
 what stations broadcast and joins the two records of one station on the signer's
@@ -35,7 +35,7 @@ one and retires it at once.
 | Component | Technology | Responsibility |
 | --- | --- | --- |
 | `mcl_stations_app` | application behaviour | `start/2` is `mcl_om:boot(mcl_stations_service)`: the mesh, the identity, health and the capability are wired before `start/1` runs |
-| `mcl_stations_service` | the `mcl_om_service` behaviour | The six callbacks plus `data_dir/0`. `start/1` opens the read model first; `capabilities/0` advertises `list_stations` with `auth => open`; `health/0` turns degraded on a lost subscription, a pool with no live link, or any refused record |
+| `mcl_stations_service` | the `mcl_om_service` behaviour | The six callbacks. `data_dir/0` exists as a private helper and is not in the export list. `start/1` opens the read model first; `capabilities/0` advertises `list_stations` with `auth => open`; `health/0` turns degraded on a lost subscription, a pool with no live link, or any refused record |
 | `mcl_stations_sup` | supervisor, `one_for_one` | One child, `ingest_node_records`: the directory has one feeder |
 | `ingest_node_records` | `gen_server`, the feeder | Snapshot then subscribe over `node_record`, `station_endpoint` and `tombstone`. Monitors the pool, redials when it restarts, and polls `macula_client:status/1` for a live link |
 | `list_stations` | `macula_response` RPC provider | `handle_request/2` folds the read model, applies `continent`/`country`/`city`/`near`/`limit`, sorts by great-circle distance and caps the count. Every stored record is verified again before it is served |

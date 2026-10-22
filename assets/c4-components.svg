@@ -56,9 +56,9 @@
 <rect class="b-cmp" x="660" y="66" width="500" height="120" rx="10"/>
 <text class="t-code" x="676" y="94">mcl_stations_service</text>
 <text class="t-type" x="676" y="112">[mcl_om_service behaviour]</text>
-<text class="t-desc" x="676" y="136">The six callbacks plus data_dir/0. start/1</text>
-<text class="t-desc" x="676" y="152">opens the read model first; capabilities/0</text>
-<text class="t-desc" x="676" y="168">advertises list_stations, auth open</text>
+<text class="t-desc" x="676" y="136">The six callbacks. data_dir/0 is private and not</text>
+<text class="t-desc" x="676" y="152">exported; start/1 opens the read model first;</text>
+<text class="t-desc" x="676" y="168">capabilities/0 advertises list_stations, auth open</text>
 <rect class="b-cmp" x="40" y="210" width="480" height="104" rx="10"/>
 <text class="t-code" x="56" y="238">mcl_stations_sup</text>
 <text class="t-type" x="56" y="256">[supervisor, one_for_one]</text>

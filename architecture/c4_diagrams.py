@@ -149,9 +149,9 @@ def context():
     d.box("b-mac", 420, 450, 300, 120, "macula-realm", "[Macula infrastructure]",
           ["Endorses the node's identity key;", "grants no authority, because the",
            "DHT records are public"])
-    d.box("b-ext", 760, 450, 300, 120, "Station cache", "[External system, host directory]",
-          ["barrel_docdb under MCL_DATA_DIR:", "a cache of the DHT snapshot, with",
-           "no volume, rebuilt every boot"])
+    d.box("b-cmp", 760, 450, 300, 120, "Station cache", "[in-container store, no volume]",
+          ["barrel_docdb under MCL_DATA_DIR:", "a cache of the DHT snapshot,",
+           "rebuilt every boot"])
     d.edge("M200 144V180H420V220")
     d.text("t-rel", 208, 170, "deploys; sets the realm and pins")
     d.edge("M910 180V200H600V220")
@@ -176,8 +176,9 @@ def components():
           ["start/2 called mcl_om:boot/1 with this service:", "the mesh, the identity, health and the capability",
            "are wired before start/1 runs"], code=True)
     d.box("b-cmp", 660, 66, 500, 120, "mcl_stations_service", "[mcl_om_service behaviour]",
-          ["The six callbacks plus data_dir/0. start/1", "opens the read model first; capabilities/0",
-           "advertises list_stations, auth open"], code=True)
+          ["The six callbacks. data_dir/0 is private and not",
+           "exported; start/1 opens the read model first;",
+           "capabilities/0 advertises list_stations, auth open"], code=True)
     d.box("b-cmp", 40, 210, 480, 104, "mcl_stations_sup", "[supervisor, one_for_one]",
           ["One child, ingest_node_records:", "the directory has one feeder"], code=True)
     d.box("b-cmp", 660, 210, 500, 120, "list_stations", "[macula_response RPC provider]",

@@ -76,12 +76,12 @@
 <text class="t-desc" x="436" y="520">Endorses the node's identity key;</text>
 <text class="t-desc" x="436" y="536">grants no authority, because the</text>
 <text class="t-desc" x="436" y="552">DHT records are public</text>
-<rect class="b-ext" x="760" y="450" width="300" height="120" rx="10"/>
+<rect class="b-cmp" x="760" y="450" width="300" height="120" rx="10"/>
 <text class="t-name" x="776" y="478">Station cache</text>
-<text class="t-type" x="776" y="496">[External system, host directory]</text>
+<text class="t-type" x="776" y="496">[in-container store, no volume]</text>
 <text class="t-desc" x="776" y="520">barrel_docdb under MCL_DATA_DIR:</text>
-<text class="t-desc" x="776" y="536">a cache of the DHT snapshot, with</text>
-<text class="t-desc" x="776" y="552">no volume, rebuilt every boot</text>
+<text class="t-desc" x="776" y="536">a cache of the DHT snapshot,</text>
+<text class="t-desc" x="776" y="552">rebuilt every boot</text>
 <path class="edge" d="M200 144V180H420V220" marker-end="url(#a)"/>
 <text class="t-rel" x="208" y="170">deploys; sets the realm and pins</text>
 <path class="edge" d="M910 180V200H600V220" marker-end="url(#a)"/>
