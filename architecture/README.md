@@ -63,11 +63,13 @@ types and the snapshot-and-subscribe in `ingest_node_records/`, the provider in
 in `config/sys.config.src`, the `Containerfile` and `deploy/docker-compose.yml`.
 When one of those changes, the diagram changes in the same commit.
 
+**Where the station list comes from.** It is not in `config/sys.config.src`: `mcl_om` reads `MACULA_STATION_SEEDS` and `MACULA_STATION_NODE_IDS` from the environment at boot, paired index for index, so this repository pins no station and the list may be any length.
+
 Two rules for the files themselves, so they render everywhere they are read
 (GitHub, an IDE, `rsvg-convert`): self-contained SVG, and literal colours in
 plain classes plus a `prefers-color-scheme` dark block, never CSS custom
 properties, which `rsvg-convert` renders black.
 
 The check that keeps them here is the `c4-model` job in
-`.github/workflows/build-push.yml`. It is red until both files exist and are
+`.github/workflows/c4-model.yml`. It is red until both files exist and are
 shown, and it stays red if either one goes missing.
