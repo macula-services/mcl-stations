@@ -65,8 +65,12 @@ per record type, so a lapsed `node_record` drops its fields while a live
 `station_endpoint` keeps the station listed. Because a row now carries its
 records, callers that do not want the whole directory pass `limit`.
 
-It asks the realm for no authority: the records it reads live in the DHT's own
-realm, and serving an RPC needs no realm-granted topic.
+It asks the realm for its scope, `mcl-stations` -- claimed in `identity_spec/0` for the
+namespace every later resource hangs under, with no actions or resources yet -- and a
+provider authorization per org procedure, `list_stations`, `info` and `get_limits`;
+without that grant an advertisement never lands and `/health` reads degraded. The
+records it reads live in the DHT's own realm, and serving an RPC needs no realm-granted
+topic.
 
 **Stations that go dark.** Each row keeps the expiry of the records it came
 from. A live station refreshes them well before they lapse; one that crashed
@@ -134,16 +138,16 @@ what stops a config table in a README and the real environment drifting.
 
 A `v*` tag publishes `ghcr.io/macula-services/mcl-stations:<version>` and nothing else, signed
 by digest with its SBOM and provenance (macula-ci-images' `attest-image.yml`). A push to
-`main` publishes `:main` and `:<sha>`, which nothing follows, and nothing moves `:latest`.
+`main` publishes `:main` and `:<sha>`, which no box follows. Nothing moves `:latest` at all.
 The fleet runs a release by digest: macula-fleet's pin-releases workflow finds the signed
 release, verifies it was signed on its tag and pins `<version>@sha256:<digest>`
 (macula-fleet#14, #15), so a green `v*` tag is the deploy. To roll back, revert the pin and
 hold the image there. A push that changes
 only documentation builds no image (`scripts/is_image_push.sh`).
 
-The service's org, the `<org>` in every procedure it offers (`<org>/<name>`), is
+The service's org, the `<org>` prefix on its own procedure names (`<org>/<name>`), is
 this repository's name, fixed in `config/sys.config.src`. The realm's grant names
-it; without an org mcl_om advertises nothing.
+it; without an org mcl_om refuses to boot, naming the setting.
 
 Two things CI cannot do for you, both of which have bitten:
 
@@ -151,8 +155,8 @@ Two things CI cannot do for you, both of which have bitten:
    the host with a bare `unauthorized` that names nothing. Check it after the
    first build. On ghcr the `org.opencontainers.image.source` label in the
    Containerfile is what links the package to the repository.
-2. The host needs `MCL_REALM` and the pinned station pair supplied from
-   somewhere they are not committed.
+2. The host needs `MCL_REALM` and the station seeds, each with its matching node
+   id, supplied from somewhere they are not committed.
 
 ## The service contract
 

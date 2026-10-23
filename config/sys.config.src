@@ -1,4 +1,4 @@
-%% Substituted by relx at boot; every ${VAR} must resolve or the node will not
+%% Every ${VAR} must resolve at boot, or the node will not
 %% start with a malformed term. That is the correct failure: a service with a
 %% half-configured realm announces itself where nobody can attribute it, which
 %% looks exactly like a healthy node.
@@ -29,23 +29,25 @@
         %% mesh at all, which answers /health and nothing else, forever.
         {mesh,              required},
         {realm,             <<"${MCL_REALM}">>},
-        %% ONE ORG PER SERVICE, NAMED AFTER THE REPOSITORY: the `Org' in every
-        %% procedure it offers (`Org/Name'), and the org the realm's grant
+        %% ONE ORG PER SERVICE, NAMED AFTER THE REPOSITORY: it is the `Org' prefix on
+        %% a procedure's name (`Org/Name'), and the org the realm's grant
         %% names. Fixed here rather than read from the environment, because it
         %% is a property of the service, not of where it runs. Without it
-        %% mcl_om answers `_' and advertises nothing.
+        %% mcl_om refuses to boot, naming this setting (mcl_om v1.4).
         {org,               <<"mcl-stations">>},
         %% ⚠ THE TRUST ANCHOR, AND IT IS NOT OPTIONAL. MCL_REALM above is an
         %% IDENTIFIER (sha256 of the realm name); this is the realm's public
         %% SIGNING KEY, 64-hex-per-32-bytes, as carried. mcl_om decodes it and
         %% pins it as macula:connect/2's `realm_trust'.
         %%
-        %% Without it every org-namespaced advertisement this service resolves
-        %% is refused with `no_realm_key', direct dial answers `{unresolved,
-        %% no_trusted_advertisement}', and the boot claim never reaches the
-        %% realm: no pending row, no delegation, nothing callable. The node
-        %% stays green and answers /health throughout, which is why mcl_om
-        %% now refuses to start a pool without it rather than letting a
+        %% With the WRONG key the signer match fails: every org-namespaced
+        %% advertisement this service resolves is refused with
+        %% `org_directory_wrong_realm' (`no_realm_key' is the other clause, no
+        %% key at all for this realm), direct dial answers
+        %% `{unresolved, no_trusted_advertisement}', and the boot claim never
+        %% reaches the realm: no pending row, no delegation, and no peer resolves it,
+        %% while the node answers /health throughout. That failure mode is why
+        %% mcl_om refuses to start a pool with no key at all, rather than let a
         %% service look healthy and be unreachable.
         %%
         %% Public material. It is the half everyone verifies against, not a

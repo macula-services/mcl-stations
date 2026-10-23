@@ -1,0 +1,109 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 720" role="img" aria-label="mcl-stations system context">
+<title>mcl-stations system context</title>
+<style>
+.t-name { font-family: "Atkinson Hyperlegible", "Segoe UI", system-ui, -apple-system, Helvetica, Arial, sans-serif; font-size: 15px; font-weight: 700; }
+.t-desc { font-family: "Atkinson Hyperlegible", "Segoe UI", system-ui, -apple-system, Helvetica, Arial, sans-serif; font-size: 12.5px; }
+.t-rel { font-family: "Atkinson Hyperlegible", "Segoe UI", system-ui, -apple-system, Helvetica, Arial, sans-serif; font-size: 11.5px; paint-order: stroke; stroke-width: 4px; stroke-linejoin: round; }
+.t-code { font-family: "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace; font-size: 13px; font-weight: 600; }
+.t-type { font-family: "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace; font-size: 11.5px; }
+.t-bound { font-family: "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace; font-size: 12px; font-weight: 600; }
+.t-leg { font-family: "Atkinson Hyperlegible", "Segoe UI", system-ui, -apple-system, Helvetica, Arial, sans-serif; font-size: 12px; }
+.edge { fill: none; stroke-width: 1.25; }
+.edge-later { fill: none; stroke-width: 1.25; stroke-dasharray: 5 4; }
+.bg { fill: #FFFFFF; }
+.b-sys { fill: #F5E9CC; stroke: #A56F0A; stroke-width: 2; }
+.b-per { fill: #E3EBF2; stroke: #3B5B7A; stroke-width: 1.25; }
+.b-mac { fill: #E6E4EE; stroke: #5E5A78; stroke-width: 1.25; }
+.b-ext { fill: #ECEFED; stroke: #8A9791; stroke-width: 1.25; }
+.b-cmp { fill: #FFFFFF; stroke: #8A9791; stroke-width: 1.25; }
+.b-later { fill: none; stroke: #8A9791; stroke-width: 1.25; stroke-dasharray: 5 4; }
+.bound { fill: none; stroke: #B3BDB8; stroke-width: 1; }
+.head { fill: #3B5B7A; }
+.t-name, .t-code { fill: #16201D; }
+.t-type, .t-bound, .t-leg { fill: #66736E; }
+.t-desc { fill: #34413C; }
+.t-rel { fill: #66736E; stroke: #FFFFFF; }
+.edge, .edge-later { stroke: #8A9791; }
+.arrowhead { fill: #8A9791; }
+@media (prefers-color-scheme: dark) {
+.bg { fill: #171F1C; }
+.b-sys { fill: #3A2E13; stroke: #E3AA3C; }
+.b-per { fill: #1D2A36; stroke: #8EB4D8; }
+.b-mac { fill: #26243A; stroke: #A9A4C8; }
+.b-ext { fill: #1C2421; stroke: #7D8B85; }
+.b-cmp { fill: #171F1C; stroke: #7D8B85; }
+.b-later { stroke: #7D8B85; }
+.bound { stroke: #4A5752; }
+.head { fill: #8EB4D8; }
+.t-name, .t-code { fill: #E6ECE9; }
+.t-type, .t-bound, .t-leg { fill: #93A09A; }
+.t-desc { fill: #C3CDC8; }
+.t-rel { fill: #93A09A; stroke: #171F1C; }
+.edge, .edge-later { stroke: #7D8B85; }
+.arrowhead { fill: #7D8B85; }
+}
+</style>
+<defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="arrowhead" d="M0 0L10 5L0 10z"/></marker></defs>
+<rect class="bg" x="0" y="0" width="1100" height="720"/>
+<rect class="b-per" x="60" y="40" width="280" height="104" rx="10"/>
+<circle class="head" cx="86" cy="64" r="9"/>
+<text class="t-name" x="104" y="68">Service operator</text>
+<text class="t-type" x="104" y="86">[Person]</text>
+<text class="t-desc" x="76" y="110">Deploys the release, supplies</text>
+<text class="t-desc" x="76" y="126">the realm, its key and the pins</text>
+<rect class="b-ext" x="760" y="40" width="300" height="140" rx="10"/>
+<text class="t-name" x="776" y="68">Mesh callers</text>
+<text class="t-type" x="776" y="86">[External system, any node or client]</text>
+<text class="t-desc" x="776" y="110">Any node or client that calls</text>
+<text class="t-desc" x="776" y="126">mcl-stations/list_stations; the</text>
+<text class="t-desc" x="776" y="142">procedure is open, every row public</text>
+<rect class="b-sys" x="380" y="220" width="340" height="150" rx="10"/>
+<text class="t-name" x="396" y="248">mcl-stations</text>
+<text class="t-type" x="396" y="266">[mcl_om mesh service]</text>
+<text class="t-desc" x="396" y="290">The station directory: it snapshots</text>
+<text class="t-desc" x="396" y="306">the DHT, follows it live, and</text>
+<text class="t-desc" x="396" y="322">serves its own list_stations with</text>
+<text class="t-desc" x="396" y="338">rows a client can verify itself</text>
+<rect class="b-mac" x="60" y="450" width="320" height="140" rx="10"/>
+<text class="t-name" x="76" y="478">Macula stations, the mesh and DHT</text>
+<text class="t-type" x="76" y="496">[Macula infrastructure]</text>
+<text class="t-desc" x="76" y="520">Every station broadcasts its</text>
+<text class="t-desc" x="76" y="536">node_record, station_endpoint</text>
+<text class="t-desc" x="76" y="552">and tombstone; the DHT holds them</text>
+<rect class="b-mac" x="420" y="450" width="300" height="136" rx="10"/>
+<text class="t-name" x="436" y="478">macula-realm</text>
+<text class="t-type" x="436" y="496">[Macula infrastructure]</text>
+<text class="t-desc" x="436" y="520">Endorses the node's identity key</text>
+<text class="t-desc" x="436" y="536">and grants a provider authorization</text>
+<text class="t-desc" x="436" y="552">for each org procedure it advertises;</text>
+<text class="t-desc" x="436" y="568">the DHT records stay public</text>
+<rect class="b-cmp" x="760" y="450" width="300" height="120" rx="10"/>
+<text class="t-name" x="776" y="478">Station cache</text>
+<text class="t-type" x="776" y="496">[in-container store, no volume]</text>
+<text class="t-desc" x="776" y="520">barrel_docdb under MCL_DATA_DIR:</text>
+<text class="t-desc" x="776" y="536">a cache of the DHT snapshot,</text>
+<text class="t-desc" x="776" y="552">rebuilt every boot</text>
+<path class="edge" d="M200 144V180H420V220" marker-end="url(#a)"/>
+<text class="t-rel" x="208" y="170">deploys; sets the realm and pins</text>
+<path class="edge" d="M910 180V200H600V220" marker-end="url(#a)"/>
+<text class="t-rel" x="700" y="192">calls list_stations, open</text>
+<path class="edge" d="M420 370V400H220V450" marker-end="url(#a)"/>
+<text class="t-rel" x="228" y="392">snapshots, then subscribes</text>
+<path class="edge" d="M500 370V450" marker-end="url(#a)"/>
+<text class="t-rel" x="508" y="410">boot claim and procedure grants</text>
+<path class="edge" d="M720 330H790V450" marker-end="url(#a)"/>
+<text class="t-rel" x="798" y="400">writes each record, reads</text>
+<text class="t-desc" x="60" y="620">The mesh is the source: this service holds no station list of its own, it follows what stations broadcast and joins the two records</text>
+<text class="t-desc" x="60" y="638">of one station on the signer's key id. A row carries the raw signed records, so a caller verifies them itself instead of trusting the directory.</text>
+<text class="t-desc" x="60" y="656">A station that stops refreshing is unlisted once its records expire, with no tombstone needed; a graceful shutdown publishes one and retires it at once.</text>
+<rect class="b-sys" x="24" y="680" width="22" height="14" rx="3"/>
+<text class="t-leg" x="54" y="692">In scope</text>
+<rect class="b-per" x="110.8" y="680" width="22" height="14" rx="3"/>
+<text class="t-leg" x="140.8" y="692">Person</text>
+<rect class="b-mac" x="184.39999999999998" y="680" width="22" height="14" rx="3"/>
+<text class="t-leg" x="214.39999999999998" y="692">Macula infrastructure</text>
+<rect class="b-ext" x="357.0" y="680" width="22" height="14" rx="3"/>
+<text class="t-leg" x="387.0" y="692">External system</text>
+<rect class="b-cmp" x="490.0" y="680" width="22" height="14" rx="3"/>
+<text class="t-leg" x="520.0" y="692">Container or component</text>
+</svg>

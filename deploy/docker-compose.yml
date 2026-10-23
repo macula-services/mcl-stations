@@ -29,12 +29,11 @@ services:
       # ⚠ THE SERVICE'S IDENTITY LIVES HERE. mcl_om generates the node key on
       # first boot and loads it on every boot after. The image declares this
       # path a VOLUME, and with nothing mounted docker gives each new container
-      # a fresh anonymous one, so every recreate (watchtower does them as
-      # routine) would mint a new node id while the service looks healthy.
+      # a fresh anonymous one, so every recreate would mint a new node id
+      # while the service looks healthy.
       - secrets:/etc/mcl/secrets
     labels:
-      # Only meaningful if you run watchtower: it pulls a new :latest and
-      # recreates the container. Harmless otherwise.
+      # The label is inert unless a watchtower with label-enable runs on this box.
       - "com.centurylinklabs.watchtower.enable=true"
     environment:
       # No default. A service that guesses its realm announces itself where
