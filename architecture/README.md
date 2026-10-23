@@ -8,9 +8,11 @@ snapshots the DHT's station records, follows them live, and serves
 `mcl-stations/list_stations`, which is its own procedure and the only one, from
 a `barrel_docdb` read model. `mcl_om` adds `mcl-stations/info` and
 `mcl-stations/get_limits` to every service, open to any caller; `capabilities/0`
-is the list. It asks the realm for exactly one thing: a provider authorization for each org
-procedure it advertises, `list_stations`, `info` and `get_limits`. Without it an
-advertisement never lands and `/health` reads degraded. It keeps no event store and
+is the list. It asks the realm for its scope, `mcl-stations` -- claimed in `identity_spec/0` for the
+namespace every later resource hangs under, with no actions or resources yet -- and a
+provider authorization for each org procedure it advertises, `list_stations`, `info`
+and `get_limits`. Without that grant an advertisement never lands and `/health` reads
+degraded. It keeps no event store and
 stores no station list of its own.
 
 ## Level 1: system context
@@ -23,7 +25,7 @@ stores no station list of its own.
 | Service operator | Person | Deploys the release and supplies the realm, its key and the pinned station seeds |
 | Mesh callers | External system, any node or client | Any node or client that calls `mcl-stations/list_stations`, which is open, because every row in the reply is public already |
 | Macula stations, the mesh and DHT | Macula infrastructure | Every station broadcasts its `node_record` (0x01), `station_endpoint` (0x12) and `tombstone` (0x0C); the DHT holds them and this service only reads |
-| macula-realm | Macula infrastructure | Endorses the node's identity key and grants a a provider authorization per org procedure (`list_stations`, `info`, `get_limits`); without it an advertisement never lands and `/health` reads degraded. The records it reads live in the DHT's own realm |
+| macula-realm | Macula infrastructure | Endorses the node's identity key and grants a provider authorization per org procedure (`list_stations`, `info`, `get_limits`); without it an advertisement never lands and `/health` reads degraded. The records it reads live in the DHT's own realm |
 | Station cache | In-container store | `barrel_docdb` under `MCL_DATA_DIR` (`/var/lib/mcl-stations`), inside the service's own container: a cache of the DHT snapshot with no volume, rebuilt every boot |
 
 The mesh is the source. The service holds no station list of its own: it follows

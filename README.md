@@ -65,9 +65,12 @@ per record type, so a lapsed `node_record` drops its fields while a live
 `station_endpoint` keeps the station listed. Because a row now carries its
 records, callers that do not want the whole directory pass `limit`.
 
-It asks the realm for one thing: a a provider authorization per org procedure, `list_stations`, `info` and `get_limits`; without it an
-advertisement never lands and `/health` reads degraded. The records it reads live
-in the DHT's own realm, and serving an RPC needs no realm-granted topic.
+It asks the realm for its scope, `mcl-stations` -- claimed in `identity_spec/0` for the
+namespace every later resource hangs under, with no actions or resources yet -- and a
+provider authorization per org procedure, `list_stations`, `info` and `get_limits`;
+without that grant an advertisement never lands and `/health` reads degraded. The
+records it reads live in the DHT's own realm, and serving an RPC needs no realm-granted
+topic.
 
 **Stations that go dark.** Each row keeps the expiry of the records it came
 from. A live station refreshes them well before they lapse; one that crashed

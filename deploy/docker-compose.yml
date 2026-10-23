@@ -33,7 +33,7 @@ services:
       # while the service looks healthy.
       - secrets:/etc/mcl/secrets
     labels:
-      # Nothing here depends on it: no watchtower runs on the fleet.
+      # The label is inert unless a watchtower with label-enable runs on this box.
       - "com.centurylinklabs.watchtower.enable=true"
     environment:
       # No default. A service that guesses its realm announces itself where
