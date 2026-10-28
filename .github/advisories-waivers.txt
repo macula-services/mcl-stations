@@ -1,0 +1,13 @@
+# advisory | package | why it cannot be fixed yet | owner | expires YYYY-MM-DD
+#
+# cowlib 2.21.0 is the newest release and the fix for this one is upstream in
+# 4401b858f2229abb3ea115c60924f6c77e5f8aa3 only, so there is no version to move
+# to yet. It is an escape_string/2 issue in cow_http_struct_hd. Here cowlib
+# arrives through mcl_om, whose /health listener is cowboy ~> 2.12: this service
+# answers /health over HTTP, but I have not traced a header value that a caller
+# influences into escape_string/2, which is why the row is a waiver and not a
+# claim that the path is unreachable. Replace this row with the bump on the
+# cowlib release that carries the fix, and no later than the date below. Tracked
+# for every Erlang and Elixir repository that adopts the advisory gate:
+# macula-io/macula#152.
+EEF-CVE-2026-43966 | cowlib | no released version carries the fix yet; upstream 4401b85, bump on the next cowlib release | titan | 2026-11-11
