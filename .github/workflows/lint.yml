@@ -56,6 +56,6 @@ jobs:
     name: Dependency advisories
     permissions:
       contents: read
-    uses: macula-io/macula-ci-images/.github/workflows/dependency-advisories.yml@83a76a358456bf2f7d6c919ad5e8fe7fd2162ce3
+    uses: macula-io/macula-ci-images/.github/workflows/dependency-advisories.yml@dfb1722f3d72287972fc4d7e3b49e14232b2de7a
     with:
       ecosystem: erlang
