@@ -10,8 +10,11 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - **macula 18 and mcl_om 1.6** (macula-services/mcl-om#42). The floors move to
   `mcl_om ~> 1.6` and `macula ~> 18.0`. macula arrives through mcl_om, but a
   top-level pin wins in rebar3, so both are raised together; no service code
-  moved to make this build, and every gate passed on the new substrate with the
-  tests untouched.
+  moved to make this build. The gates pass on the new substrate, with one test
+  moved to keep that sentence true: `dependency_floors_tests` asserted macula
+  15.6.0 and mcl_om 1.0.0, and 18.0.0 and 1.6.0 satisfy those by sort order —
+  a guard left behind passes a build this service could not be built against —
+  so it now asserts the floors that ship.
 - **Serving openly is now something the SDK enforces, not assumes.** macula 18
   refuses to advertise a procedure that names no call class
   (macula-io/macula#147), and mcl_om 1.6 refuses the boot first, naming the
