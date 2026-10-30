@@ -3,7 +3,7 @@
 *This exists so a reader can see what mcl-stations talks to, and what it is made
 of, without reading it.*
 
-**Status: 0.4.1, serving `list_stations`.** The service boots, joins the mesh,
+**Status: 0.5.0, serving `list_stations`.** The service boots, joins the mesh,
 snapshots the DHT's station records, follows them live, and serves
 `mcl-stations/list_stations`, which is its own procedure and the only one, from
 a `barrel_docdb` read model. `mcl_om` adds `mcl-stations/info` and
@@ -49,8 +49,8 @@ one and retires it at once.
 | `station_read_model` | `barrel_docdb` | One doc per station key id, holding each record's raw signed bytes and projected fields. Expiry and serving are per record type, so a lapsed `node_record` drops its fields while a live endpoint keeps the station listed |
 | `station_record_drops` | ETS gauge | Keyed by (row, record type): what the directory is refusing right now, per reason. Health reads the counts, so a directory quietly dropping rows is degraded, never green |
 | `continent_lookup` | pure, a static table | ISO 3166-1 alpha-2 country code to continent; anything else is `unknown` |
-| `mcl_om` | library, `~> 1.0` | `boot/1` wires the mesh, identity and health, and registers its own capability, `list_stations`, plus the open info and get_limits every service carries |
-| `macula` | library, `~> 15.6` | `find_records_by_type/2`, `subscribe_records/3`, and record verification under the node's crypto profile |
+| `mcl_om` | library, `~> 1.6` | `boot/1` wires the mesh, identity and health, and registers its own capability, `list_stations`, plus the open info and get_limits every service carries |
+| `macula` | library, `~> 18.0` | `find_records_by_type/2`, `subscribe_records/3`, and record verification under the node's crypto profile |
 | `barrel_docdb` | library, `~> 1.5` | The read model's store, on the rocksdb binding linked to the system `librocksdb` 11.1. The image pair carries it at run time |
 | the host environment | environment, read at boot | `MCL_REALM`, `MCL_REALM_KEY`, `MACULA_STATION_SEEDS`, `MACULA_STATION_NODE_IDS` (mcl_om refuses to boot without them) and `MCL_DATA_DIR`; the node identity key is read from `/etc/mcl/secrets` by `mcl_om` |
 

@@ -196,9 +196,9 @@ def components():
     d.box("b-cmp", 660, 482, 480, 120, "continent_lookup", "[pure, a static table]",
           ["ISO 3166-1 alpha-2 country code to", "continent; anything else is unknown"],
           code=True)
-    d.box("b-mac", 40, 626, 360, 120, "mcl_om", "[library, ~> 1.0]",
+    d.box("b-mac", 40, 626, 360, 120, "mcl_om", "[library, ~> 1.6]",
           ["boot/1 wires mesh, identity, health;", "it advertises capabilities/0"], code=True)
-    d.box("b-mac", 420, 626, 360, 120, "macula", "[library, ~> 15.6]",
+    d.box("b-mac", 420, 626, 360, 120, "macula", "[library, ~> 18.0]",
           ["find_records_by_type/2, subscribe_records/3,", "record verification under the crypto profile"],
           code=True)
     d.box("b-mac", 800, 626, 360, 120, "barrel_docdb", "[library, ~> 1.5]",

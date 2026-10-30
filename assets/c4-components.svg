@@ -95,12 +95,12 @@
 <text class="t-desc" x="676" y="568">continent; anything else is unknown</text>
 <rect class="b-mac" x="40" y="626" width="360" height="120" rx="10"/>
 <text class="t-code" x="56" y="654">mcl_om</text>
-<text class="t-type" x="56" y="672">[library, ~&gt; 1.0]</text>
+<text class="t-type" x="56" y="672">[library, ~&gt; 1.6]</text>
 <text class="t-desc" x="56" y="696">boot/1 wires mesh, identity, health;</text>
 <text class="t-desc" x="56" y="712">it advertises capabilities/0</text>
 <rect class="b-mac" x="420" y="626" width="360" height="120" rx="10"/>
 <text class="t-code" x="436" y="654">macula</text>
-<text class="t-type" x="436" y="672">[library, ~&gt; 15.6]</text>
+<text class="t-type" x="436" y="672">[library, ~&gt; 18.0]</text>
 <text class="t-desc" x="436" y="696">find_records_by_type/2, subscribe_records/3,</text>
 <text class="t-desc" x="436" y="712">record verification under the crypto profile</text>
 <rect class="b-mac" x="800" y="626" width="360" height="120" rx="10"/>
