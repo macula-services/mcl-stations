@@ -5,6 +5,26 @@ All notable changes to this project are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.5.0 - 2026-10-30
+
+- **macula 18 and mcl_om 1.6** (macula-services/mcl-om#42). The floors move to
+  `mcl_om ~> 1.6` and `macula ~> 18.0`. macula arrives through mcl_om, but a
+  top-level pin wins in rebar3, so both are raised together; no service code
+  moved to make this build, and every gate passed on the new substrate with the
+  tests untouched.
+- **Serving openly is now something the SDK enforces, not assumes.** macula 18
+  refuses to advertise a procedure that names no call class
+  (macula-io/macula#147), and mcl_om 1.6 refuses the boot first, naming the
+  capability. `list_stations` already states `auth => open`, which is the
+  explicit opt-out — every row it answers is public, because stations broadcast
+  those records to the whole DHT — so this release is the SDK catching up to
+  what the service already said. Nobody gains or loses reach.
+- **The record subscriptions are unchanged.** `macula:subscribe_records/3` keeps
+  its arity at 18 and needs no `sources`; macula 18 requires a declared source
+  on topic subscriptions, and this service has none.
+- Minor rather than patch because a SDK major is a deployment change even when no
+  service code moves: this release runs only on a box carrying mcl_om 1.6.
+
 ## 0.4.1 - 2026-10-20
 
 - **`list_stations` answers `id` as text** (mcl-stations#6). `id` is 64 ASCII hex characters as stored, but it arrived as a CBOR byte string, so every non-BEAM client saw an opaque blob and had to base64-decode it before it could show or compare a station. It now goes out tagged as text, in `station_read_model:to_wire/1`. `_rev` and the raw signed records stay bytes: one is a docdb handle, the others are what a client verifies. A test asserts `id` survives the encoder as text, so a regression to bytes fails rather than shipping a blob.
