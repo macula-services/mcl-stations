@@ -3,7 +3,7 @@
 *This exists so a reader can see what mcl-stations talks to, and what it is made
 of, without reading it.*
 
-**Status: 0.5.0, serving `list_stations`.** The service boots, joins the mesh,
+**Status: 0.6.0, serving `list_stations`, sealed end to end.** The service boots, joins the mesh,
 snapshots the DHT's station records, follows them live, and serves
 `mcl-stations/list_stations`, which is its own procedure and the only one, from
 a `barrel_docdb` read model. `mcl_om` adds `mcl-stations/info` and
@@ -42,7 +42,7 @@ one and retires it at once.
 | Component | Technology | Responsibility |
 | --- | --- | --- |
 | `mcl_stations_app` | application behaviour | `start/2` is `mcl_om:boot(mcl_stations_service)`: the mesh, the identity, health and `list_stations` are wired before `start/1` runs |
-| `mcl_stations_service` | the `mcl_om_service` behaviour | The six callbacks. `data_dir/0` exists as a private helper and is not in the export list. `start/1` opens the read model first; `capabilities/0` declares `list_stations` with `auth => open`, and `mcl_om` adds the open `info` and `get_limits` on top of it; `health/0` turns degraded on a lost subscription, a pool with no live link, or any refused record |
+| `mcl_stations_service` | the `mcl_om_service` behaviour | The six callbacks. `data_dir/0` exists as a private helper and is not in the export list. `start/1` opens the read model first; `capabilities/0` declares `list_stations` with `auth => open` and `confidential => required` (the request carries the caller's location, so it is sealed to the KEM key the signed advertisement names, and a clear call is refused), and `mcl_om` adds the open `info` and `get_limits` on top of it; `health/0` turns degraded on a lost subscription, a pool with no live link, or any refused record |
 | `mcl_stations_sup` | supervisor, `one_for_one` | One child, `ingest_node_records`: the directory has one feeder |
 | `ingest_node_records` | `gen_server`, the feeder | Snapshot then subscribe over `node_record`, `station_endpoint` and `tombstone`. Monitors the pool, redials when it restarts, and polls `macula_client:status/1` for a live link |
 | `list_stations` | `macula_response` RPC provider | `handle_request/2` folds the read model, applies `continent`/`country`/`city`/`near`/`limit`, sorts by great-circle distance and caps the count. Every stored record is verified again before it is served |

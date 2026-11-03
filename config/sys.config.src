@@ -79,7 +79,14 @@
     %% application start whatever the value: a node that set one would
     %% believe it had chosen a difficulty that nothing reads.
     {macula, [
-        {crypto_profile, pq_hybrid}
+        {crypto_profile, pq_hybrid},
+        %% ⚠ WITHOUT THIS THE ADVERTISEMENT NAMES NO KEM KEY. list_stations is
+        %% `confidential => required' (the request carries the caller's
+        %% location), and macula names the node's KEM key in the signed
+        %% advertisement only with this switch on; mcl_om refuses `required'
+        %% without it. Its absence is what refused every sealed-required
+        %% caller with `no_kem_key' (issue #18).
+        {kem_advertise, enabled}
     ]},
     {kernel, [{logger_level, info}]}
 ].
