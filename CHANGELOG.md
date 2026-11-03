@@ -5,6 +5,21 @@ All notable changes to this project are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.6.0 - 2026-11-03
+
+- **`list_stations` is sealed end to end** (issue #18). A `near` request
+  carries the caller's latitude and longitude, and until now it could only
+  travel in the clear: the advertisement named no KEM key, so a caller that
+  requires sealing (the cam2me app) was refused `no_kem_key` before it sent.
+  The cause was here. `{kem_advertise, enabled}` was never set in
+  `sys.config.src`, and without it macula names no key. It is set now, and
+  the capability is `confidential => required`. The advertisement names this
+  node's KEM key, signed with the rest of the record, and a clear call is
+  refused `sealed_required`, as required by default (macula-io/macula#135).
+- Minor rather than patch because a caller that does not seal is now refused.
+  Every macula SDK seals by default, so in practice only a caller that opts
+  out of sealing notices.
+
 ## 0.5.0 - 2026-10-30
 
 - **macula 18 and mcl_om 1.6** (macula-services/mcl-om#42). The floors move to

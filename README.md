@@ -40,7 +40,10 @@ the node's crypto profile and drops what fails, so nothing unverified reaches
 the read model. The two records of one station are joined on the signer's key
 id, and a tombstone that withdraws a node_record removes that station at once.
 
-**What it serves.** `mcl-stations/list_stations`, open to any caller:
+**What it serves.** `mcl-stations/list_stations`, open to any caller, and sealed
+end to end: a `near` request carries the caller's location, so the call must be
+sealed to the KEM key named in the service's signed advertisement, and a clear
+call is refused `sealed_required` (0.6.0, issue #18). Every macula SDK seals by default.
 
 | Argument | Effect |
 |----------|--------|

@@ -15,7 +15,7 @@
 
 info() ->
     #{name => <<"mcl-stations">>,
-      version => <<"0.5.0">>,
+      version => <<"0.6.0">>,
       description => <<"Live, filterable directory of macula stations: geo, liveness and direct-dial address, so clients never hand-maintain a station list">>}.
 
 %% The read model is this service's own: opened here, before the supervisor
@@ -61,12 +61,17 @@ health_of(true, true, Drops) ->
 %% procedure is `Org/list_stations', the org (and the realm it lives in) being
 %% deploy config, not code; mcl_om refuses to advertise under an unset org.
 %% Open, because every row in the reply is public already: stations
-%% broadcast these records to the whole DHT.
+%% broadcast these records to the whole DHT. Sealed, because the request is
+%% not: it carries the caller's latitude and longitude. `required' names this
+%% node's KEM key in the signed advertisement (with macula's kem_advertise,
+%% sys.config) and refuses a clear call, so a location is never answered in
+%% the clear (issue #18; sealing required by default, macula-io/macula#135).
 capabilities() ->
     [#{name => <<"list_stations">>,
        version => 1,
        handler => {list_stations, []},
-       auth => open}].
+       auth => open,
+       confidential => required}].
 
 %% THE AUTHORITY THIS SERVICE ASKS THE REALM FOR, and deliberately nothing more.
 %% Ask for exactly the topics you publish and subscribe to. Popped, an attacker

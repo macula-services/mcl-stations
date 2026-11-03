@@ -94,13 +94,37 @@ health_is_degraded_when_no_station_link_is_up_test() ->
 %% The one promise this service makes: the station directory, answered by
 %% the list_stations desk. The wire name becomes `Org/list_stations', the
 %% org being deploy config. Open, because every row in the reply is public
-%% already: stations broadcast these records to the whole DHT.
+%% already: stations broadcast these records to the whole DHT. Sealed, because
+%% the REQUEST is not public: it carries the caller's latitude and longitude
+%% (issue #18).
 announces_the_station_directory_test() ->
     ?assertEqual([#{name => <<"list_stations">>,
                     version => 1,
                     handler => {list_stations, []},
-                    auth => open}],
+                    auth => open,
+                    confidential => required}],
                  ?SERVICE:capabilities()).
+
+%% `required' names the node's KEM key only with macula's kem_advertise
+%% switch on; mcl_om refuses the pair otherwise, so the service would not
+%% advertise at all. This is the verdict mcl_om gives at boot.
+the_capabilities_are_accepted_only_with_kem_advertise_test() ->
+    Caps = ?SERVICE:capabilities(),
+    ?assertEqual(ok, mcl_om_capabilities:confidentiality_verdict(Caps, enabled)),
+    ?assertMatch({error, {mcl_om_confidential_required_without_kem_advertise, _}},
+                 mcl_om_capabilities:confidentiality_verdict(Caps, disabled)).
+
+%% WITHOUT THE SWITCH THE ADVERTISEMENT NAMES NO KEM KEY, and every caller
+%% that requires sealing is refused `no_kem_key' before it sends (issue #18:
+%% the live record carried none). The baked config is parsed, every ${VAR}
+%% filled with a dummy, and the switch asserted.
+kem_advertise_is_enabled_test() ->
+    {ok, Text} = file:read_file(alongside("config/sys.config.src")),
+    Substituted = re:replace(Text, <<"\\$\\{[A-Z_]+\\}">>, <<"0">>, [global, {return, list}]),
+    {ok, Tokens, _} = erl_scan:string(Substituted),
+    {ok, Config} = erl_parse:parse_term(Tokens),
+    Macula = proplists:get_value(macula, Config),
+    ?assertEqual(enabled, proplists:get_value(kem_advertise, Macula)).
 
 identity_spec_has_the_shape_mcl_om_expects_test() ->
     #{scope := Scope, actions := Actions,
